@@ -1,0 +1,1 @@
+py repo init -u https://android.googlesource.com/platform/manifest -b android-12.1.0_r4
