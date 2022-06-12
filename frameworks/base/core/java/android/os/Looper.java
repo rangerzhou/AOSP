@@ -111,8 +111,10 @@ public final class Looper {
 
     private static void prepare(boolean quitAllowed) {
         if (sThreadLocal.get() != null) {
+            // 每个线程只能创建一个 Looper
             throw new RuntimeException("Only one Looper may be created per thread");
         }
+        // 创建 Looper 并 set 给 sThreadLocal，这样 get 的时候就不为 null 了
         sThreadLocal.set(new Looper(quitAllowed));
     }
 
@@ -125,12 +127,13 @@ public final class Looper {
      */
     @Deprecated
     public static void prepareMainLooper() {
-        prepare(false); // 创建 Looper 并 set 到 sThreadLocal 中
+        // 从 sThreadLocal 获取 Looper，如果获取不到就创建 Looper 并 set 到 sThreadLocal 中
+        prepare(false); // false 说明消息队列不可以 quit
         synchronized (Looper.class) {
             if (sMainLooper != null) {
                 throw new IllegalStateException("The main Looper has already been prepared.");
             }
-            sMainLooper = myLooper();
+            sMainLooper = myLooper(); // 从 sThreadLocal 获取 Looper 给到 sMainLooper
         }
     }
 
@@ -160,6 +163,7 @@ public final class Looper {
             final long ident, final int thresholdOverride) {
         Message msg = me.mQueue.next(); // might block
         if (msg == null) {
+            // MessageQueue 一创建就开始轮询，队列中无消息，等 Handler.sendMessage(),MQ.enqueueMessage 后才有消息
             // No message indicates that the message queue is quitting.
             return false;
         }
@@ -198,7 +202,7 @@ public final class Looper {
         }
         long origWorkSource = ThreadLocalWorkSource.setUid(msg.workSourceUid);
         try {
-            msg.target.dispatchMessage(msg);
+            msg.target.dispatchMessage(msg); // 这里会调用到 handleMessage 处理消息，msg.target 就是绑定的 Handler
             if (observer != null) {
                 observer.messageDispatched(token, msg);
             }
@@ -247,7 +251,7 @@ public final class Looper {
                     + msg.callback + " what=" + msg.what);
         }
 
-        msg.recycleUnchecked();
+        msg.recycleUnchecked(); // 回收 msg 对象
 
         return true;
     }
@@ -276,6 +280,7 @@ public final class Looper {
 
         // Allow overriding a threshold with a system prop. e.g.
         // adb shell 'setprop log.looper.1000.main.slow 1 && stop && start'
+        // 使用 adb shell getprop 获取 log.looper.uid.threadName.slow 属性值
         final int thresholdOverride =
                 SystemProperties.getInt("log.looper."
                         + Process.myUid() + "."
@@ -285,6 +290,7 @@ public final class Looper {
         me.mSlowDeliveryDetected = false;
 
         for (;;) {
+            // 轮询读取消息
             if (!loopOnce(me, ident, thresholdOverride)) {
                 return;
             }
@@ -322,8 +328,8 @@ public final class Looper {
     }
 
     private Looper(boolean quitAllowed) {
-        mQueue = new MessageQueue(quitAllowed);
-        mThread = Thread.currentThread();
+        mQueue = new MessageQueue(quitAllowed); // 创建 MessageQueue
+        mThread = Thread.currentThread(); // 当前线程的绑定
     }
 
     /**
@@ -488,4 +494,6 @@ public final class Looper {
          * @param msg The message that was dispatched and caused an exception.
          * @param exception The exception that was thrown.
          */
-        void dispatchingThrewException(Object token, 
+        void dispatchingThrewException(Object token, Message msg, Exception exception);
+    }
+}

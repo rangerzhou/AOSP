@@ -475,7 +475,7 @@ void IPCThreadState::flushCommands()
 {
     if (mProcess->mDriverFD < 0)
         return;
-    talkWithDriver(false);
+    talkWithDriver(false); // 传入 false，不需要执行 binder_thread_read
     // The flush could have caused post-write refcount decrements to have
     // been executed, which in turn could result in BC_RELEASE/BC_DECREFS
     // being queued in mOut. So flush again, if we need to.

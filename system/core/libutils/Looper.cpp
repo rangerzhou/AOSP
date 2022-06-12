@@ -171,14 +171,14 @@ void Looper::scheduleEpollRebuildLocked() {
         wake();
     }
 }
-
+// 参数：超时时长，发生事件的文件描述符，当前 outFd 上发生的事件(包含：EVENT_INPUT/EVENT_OUTPUT/EVENT_ERROR/EVENT_HANGUP)，上下文数据
 int Looper::pollOnce(int timeoutMillis, int* outFd, int* outEvents, void** outData) {
     int result = 0;
     for (;;) {
         while (mResponseIndex < mResponses.size()) {
             const Response& response = mResponses.itemAt(mResponseIndex++);
             int ident = response.request.ident;
-            if (ident >= 0) {
+            if (ident >= 0) { // 表示没有 callback，因为 POLL_CALLBACK = -2
                 int fd = response.request.fd;
                 int events = response.events;
                 void* data = response.request.data;
@@ -204,7 +204,7 @@ int Looper::pollOnce(int timeoutMillis, int* outFd, int* outEvents, void** outDa
             return result;
         }
 
-        result = pollInner(timeoutMillis);
+        result = pollInner(timeoutMillis); // 再处理内部轮询
     }
 }
 
@@ -233,21 +233,22 @@ int Looper::pollInner(int timeoutMillis) {
     mResponseIndex = 0;
 
     // We are about to idle.
-    mPolling = true;
+    mPolling = true; // 即将处于 idle 状态
 
-    struct epoll_event eventItems[EPOLL_MAX_EVENTS];
+    struct epoll_event eventItems[EPOLL_MAX_EVENTS]; // fd 最大个数为 16
+    // 等待事件发生或超时，在 nativeWake() 方法，向管道写端写入字符，则该方法会返回
     int eventCount = epoll_wait(mEpollFd.get(), eventItems, EPOLL_MAX_EVENTS, timeoutMillis);
 
     // No longer idling.
-    mPolling = false;
+    mPolling = false; // 不再处于 idle 状态
 
     // Acquire lock.
-    mLock.lock();
+    mLock.lock(); // 请求锁
 
     // Rebuild epoll set if needed.
     if (mEpollRebuildRequired) {
         mEpollRebuildRequired = false;
-        rebuildEpollLocked();
+        rebuildEpollLocked(); // epoll 重建，直接跳转 Done
         goto Done;
     }
 
@@ -257,12 +258,12 @@ int Looper::pollInner(int timeoutMillis) {
             goto Done;
         }
         ALOGW("Poll failed with an unexpected error: %s", strerror(errno));
-        result = POLL_ERROR;
+        result = POLL_ERROR; // epoll 事件个数小于 0，发生错误，直接跳转 Done
         goto Done;
     }
 
     // Check for poll timeout.
-    if (eventCount == 0) {
+    if (eventCount == 0) { //epoll 事件个数等于 0，发生超时，直接跳转 Done
 #if DEBUG_POLL_AND_WAKE
         ALOGD("%p ~ pollOnce - timeout", this);
 #endif
@@ -274,13 +275,13 @@ int Looper::pollInner(int timeoutMillis) {
 #if DEBUG_POLL_AND_WAKE
     ALOGD("%p ~ pollOnce - handling events from %d fds", this, eventCount);
 #endif
-
+    //  循环遍历，处理所有的事件
     for (int i = 0; i < eventCount; i++) {
         int fd = eventItems[i].data.fd;
         uint32_t epollEvents = eventItems[i].events;
         if (fd == mWakeEventFd.get()) {
             if (epollEvents & EPOLLIN) {
-                awoken();
+                awoken(); // 已经唤醒了，则读取并清空管道数据
             } else {
                 ALOGW("Ignoring unexpected epoll events 0x%x on wake event fd.", epollEvents);
             }
@@ -292,6 +293,7 @@ int Looper::pollInner(int timeoutMillis) {
                 if (epollEvents & EPOLLOUT) events |= EVENT_OUTPUT;
                 if (epollEvents & EPOLLERR) events |= EVENT_ERROR;
                 if (epollEvents & EPOLLHUP) events |= EVENT_HANGUP;
+                // 处理 request，生成对应的 reponse 对象，push 到响应数组
                 pushResponse(events, mRequests.valueAt(requestIndex));
             } else {
                 ALOGW("Ignoring unexpected epoll events 0x%x on fd %d that is "
@@ -302,7 +304,7 @@ int Looper::pollInner(int timeoutMillis) {
 Done: ;
 
     // Invoke pending message callbacks.
-    mNextMessageUptime = LLONG_MAX;
+    mNextMessageUptime = LLONG_MAX; // 再处理 Native 的 Message，调用相应回调方法
     while (mMessageEnvelopes.size() != 0) {
         nsecs_t now = systemTime(SYSTEM_TIME_MONOTONIC);
         const MessageEnvelope& messageEnvelope = mMessageEnvelopes.itemAt(0);
@@ -316,18 +318,18 @@ Done: ;
                 Message message = messageEnvelope.message;
                 mMessageEnvelopes.removeAt(0);
                 mSendingMessage = true;
-                mLock.unlock();
+                mLock.unlock();  // 释放锁
 
 #if DEBUG_POLL_AND_WAKE || DEBUG_CALLBACKS
                 ALOGD("%p ~ pollOnce - sending message: handler=%p, what=%d",
                         this, handler.get(), message.what);
 #endif
-                handler->handleMessage(message);
+                handler->handleMessage(message); // 处理消息事件
             } // release handler
 
             mLock.lock();
             mSendingMessage = false;
-            result = POLL_CALLBACK;
+            result = POLL_CALLBACK; // 发生回调
         } else {
             // The last message left at the head of the queue determines the next wakeup time.
             mNextMessageUptime = messageEnvelope.uptime;
@@ -339,6 +341,7 @@ Done: ;
     mLock.unlock();
 
     // Invoke all response callbacks.
+    // 处理带有 Callback() 方法的 Response 事件，执行 Reponse 相应的回调方法
     for (size_t i = 0; i < mResponses.size(); i++) {
         Response& response = mResponses.editItemAt(i);
         if (response.request.ident == POLL_CALLBACK) {
@@ -352,15 +355,16 @@ Done: ;
             // Invoke the callback.  Note that the file descriptor may be closed by
             // the callback (and potentially even reused) before the function returns so
             // we need to be a little careful when removing the file descriptor afterwards.
+            // 处理请求的回调方法
             int callbackResult = response.request.callback->handleEvent(fd, events, data);
             if (callbackResult == 0) {
-                removeFd(fd, response.request.seq);
+                removeFd(fd, response.request.seq); // 移除 fd
             }
 
             // Clear the callback reference in the response structure promptly because we
             // will not clear the response vector itself until the next poll.
-            response.request.callback.clear();
-            result = POLL_CALLBACK;
+            response.request.callback.clear(); // 清除 reponse 引用的回调方法
+            result = POLL_CALLBACK; // 发生回调
         }
     }
     return result;

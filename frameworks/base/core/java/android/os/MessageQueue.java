@@ -75,7 +75,7 @@ public final class MessageQueue {
     private native static void nativeSetFileDescriptorEvents(long ptr, int fd, int events);
 
     MessageQueue(boolean quitAllowed) {
-        mQuitAllowed = quitAllowed;
+        mQuitAllowed = quitAllowed; // 消息队列是否可以销毁，主线程的队列不可以销毁需要传入 false
         mPtr = nativeInit();
     }
 
@@ -326,20 +326,23 @@ public final class MessageQueue {
         }
 
         int pendingIdleHandlerCount = -1; // -1 only during first iteration
+        // -1：一直阻塞不会超时；0：不会阻塞，立即返回；>0：最长阻塞时间（毫秒）
         int nextPollTimeoutMillis = 0;
         for (;;) {
             if (nextPollTimeoutMillis != 0) {
                 Binder.flushPendingCommands();
             }
 
-            nativePollOnce(ptr, nextPollTimeoutMillis);
-
+            nativePollOnce(ptr, nextPollTimeoutMillis); // 阻塞多久
+            // 此处加锁的目的是为了 next() 函数和 enqueueMessage() 函数互斥，如此放消息和取消息就会互斥，
+            // 才能保证多线程访问的时候 MQ 的有序进行
             synchronized (this) {
                 // Try to retrieve the next message.  Return if found.
-                final long now = SystemClock.uptimeMillis();
+                final long now = SystemClock.uptimeMillis(); // 获取系统开机到现在的时间
                 Message prevMsg = null;
-                Message msg = mMessages;
+                Message msg = mMessages; // 当前链表的头结点
                 if (msg != null && msg.target == null) {
+                    // 如果 target == null，那么就是同步屏障，循环遍历，一直往后找到第一个异步的消息
                     // Stalled by a barrier.  Find the next asynchronous message in the queue.
                     do {
                         prevMsg = msg;
@@ -347,12 +350,14 @@ public final class MessageQueue {
                     } while (msg != null && !msg.isAsynchronous());
                 }
                 if (msg != null) {
+                    // 如果有消息需要处理，先判断时间有没有到，如果没到设置需要阻塞的时间，比如 postDelay 场景
                     if (now < msg.when) {
                         // Next message is not ready.  Set a timeout to wake up when it is ready.
                         nextPollTimeoutMillis = (int) Math.min(msg.when - now, Integer.MAX_VALUE);
                     } else {
                         // Got a message.
                         mBlocked = false;
+                        // 链表操作，获取 msg 并删除该节点
                         if (prevMsg != null) {
                             prevMsg.next = msg.next;
                         } else {
@@ -361,7 +366,7 @@ public final class MessageQueue {
                         msg.next = null;
                         if (DEBUG) Log.v(TAG, "Returning message: " + msg);
                         msg.markInUse();
-                        return msg;
+                        return msg; // 返回拿到的消息
                     }
                 } else {
                     // No more messages.
@@ -478,19 +483,21 @@ public final class MessageQueue {
         // We don't need to wake the queue because the purpose of a barrier is to stall it.
         synchronized (this) {
             final int token = mNextBarrierToken++;
-            final Message msg = Message.obtain();
+            final Message msg = Message.obtain(); // 从消息池中取 msg
             msg.markInUse();
-            msg.when = when;
+            // 初始化 msg，没有给 target 赋值，因此 target = null
+            msg.when = when; // 开启同步屏障的时间
             msg.arg1 = token;
 
             Message prev = null;
             Message p = mMessages;
             if (when != 0) {
-                while (p != null && p.when <= when) {
+                while (p != null && p.when <= when) { // 当前同步消息中有消息时间小于 when，那么 prev 也不为 null
                     prev = p;
                     p = p.next;
                 }
             }
+            // 根据 prev 是否为 null，将 msg 按照时间顺序插入到消息队列的合适位置
             if (prev != null) { // invariant: p == prev.next
                 msg.next = p;
                 prev.next = msg;
@@ -550,7 +557,9 @@ public final class MessageQueue {
         if (msg.target == null) {
             throw new IllegalArgumentException("Message must have a target.");
         }
-
+        // 内置锁（由系统控制 lock 和 unlock），对所有调用同一个 MQ 对象的线程来说都是互斥的
+        // 1线程->1Looper->1MQ，所以主线程就只有一个 MQ 对象，那么所有子线程向主线程发送消息的时候，
+        // 主线程一次只处理一个消息，其他消息都需要等待，如此消息队列就不会混乱
         synchronized (this) {
             if (msg.isInUse()) {
                 throw new IllegalStateException(msg + " This message is already in use.");

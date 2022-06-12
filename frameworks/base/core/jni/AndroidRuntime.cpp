@@ -1244,7 +1244,7 @@ void AndroidRuntime::start(const char* className, const Vector<String8>& options
     JniInvocation jni_invocation;
     jni_invocation.Init(NULL);
     JNIEnv* env;
-    if (startVm(&mJavaVM, &env, zygote, primary_zygote) != 0) {
+    if (startVm(&mJavaVM, &env, zygote, primary_zygote) != 0) { // 创建虚拟机
         return;
     }
     onVmCreated(env);
@@ -1252,7 +1252,7 @@ void AndroidRuntime::start(const char* className, const Vector<String8>& options
     /*
      * Register android functions.
      */
-    if (startReg(env) < 0) {
+    if (startReg(env) < 0) { // 注册 JNI
         ALOGE("Unable to register all android natives\n");
         return;
     }
@@ -1284,7 +1284,7 @@ void AndroidRuntime::start(const char* className, const Vector<String8>& options
      * Start VM.  This thread becomes the main thread of the VM, and will
      * not return until the VM exits.
      */
-    char* slashClassName = toSlashClassName(className != NULL ? className : "");
+    char* slashClassName = toSlashClassName(className != NULL ? className : ""); // className: ZygotInit
     jclass startClass = env->FindClass(slashClassName);
     if (startClass == NULL) {
         ALOGE("JavaVM unable to locate class '%s'\n", slashClassName);

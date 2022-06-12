@@ -1093,7 +1093,7 @@ public class ActivityManagerService extends IActivityManager.Stub
     final SparseArray<ArrayMap<String, ArrayList<Intent>>> mStickyBroadcasts =
             new SparseArray<ArrayMap<String, ArrayList<Intent>>>();
 
-    final ActiveServices mServices;
+    final ActiveServices mServices; // 管理 activity 的
 
     final static class Association {
         final int mSourceUid;
@@ -2017,12 +2017,13 @@ public class ActivityManagerService extends IActivityManager.Stub
         public static ActivityManagerService startService(
                 SystemServiceManager ssm, ActivityTaskManagerService atm) {
             sAtm = atm;
+            // 最终调用Lifecycle.onStart() 启动 AMS，并返回 Lifecycle.getService()，即 AMS 对象 mService
             return ssm.startService(ActivityManagerService.Lifecycle.class).getService();
         }
 
         @Override
         public void onStart() {
-            mService.start();
+            mService.start(); // 启动 AMS
         }
 
         @Override
@@ -2376,7 +2377,7 @@ public class ActivityManagerService extends IActivityManager.Stub
     }
 
     private void start() {
-        removeAllProcessGroups();
+        removeAllProcessGroups(); // 移除所有应用进程
 
         mBatteryStatsService.publish();
         mAppOpsService.publish();

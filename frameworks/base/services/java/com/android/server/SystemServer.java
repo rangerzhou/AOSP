@@ -820,7 +820,7 @@ public final class SystemServer implements Dumpable {
             performPendingShutdown();
 
             // Initialize the system context.
-            createSystemContext();
+            createSystemContext(); // 1. 加载系统资源
 
             // Call per-process mainline module initialization.
             ActivityThread.initializeMainlineModules();
@@ -873,11 +873,11 @@ public final class SystemServer implements Dumpable {
         RuntimeInit.setDefaultApplicationWtfHandler(SystemServer::handleEarlySystemWtf);
 
         // Start services.
-        try {
+        try { // 2. 启动服务
             t.traceBegin("StartServices");
-            startBootstrapServices(t);
-            startCoreServices(t);
-            startOtherServices(t);
+            startBootstrapServices(t); // 启动引导服务
+            startCoreServices(t); // 启动核心服务
+            startOtherServices(t); // 启动其他服务
         } catch (Throwable ex) {
             Slog.e("System", "******************************************");
             Slog.e("System", "************ Failure starting system services", ex);

@@ -538,7 +538,7 @@ class ZygoteServer {
 
                     if (pollIndex == 0) {
                         // Zygote server socket
-                        ZygoteConnection newPeer = acceptCommandPeer(abiList);
+                        ZygoteConnection newPeer = acceptCommandPeer(abiList); // 创建 ZygoteConnection
                         peers.add(newPeer);
                         socketFDs.add(newPeer.getFileDescriptor());
                     } else if (pollIndex < usapPoolEventFDIndex) {

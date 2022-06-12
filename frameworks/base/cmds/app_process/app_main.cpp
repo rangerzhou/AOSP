@@ -91,9 +91,9 @@ public:
 
     virtual void onZygoteInit()
     {
-        sp<ProcessState> proc = ProcessState::self();
+        sp<ProcessState> proc = ProcessState::self(); // 打开驱动
         ALOGV("App process: starting thread pool.\n");
-        proc->startThreadPool();
+        proc->startThreadPool(); // 启动线程池
     }
 
     virtual void onExit(int code)

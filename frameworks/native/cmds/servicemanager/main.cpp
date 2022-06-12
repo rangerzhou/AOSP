@@ -42,7 +42,7 @@ public:
         sp<BinderCallback> cb = sp<BinderCallback>::make(); // 实例化 BinderCallback
 
         int binder_fd = -1;
-        // 获取 binder_fd，并在其中开启 sm 的循环，使其开始工作
+        // 获取 binder_fd，并在其中开启 sm 的循环?，使其开始工作
         IPCThreadState::self()->setupPolling(&binder_fd);
         LOG_ALWAYS_FATAL_IF(binder_fd < 0, "Failed to setupPolling: %d", binder_fd);
         // 添加监听目标，通过 epoll 机制监听驱动的文件描述符 binder_fd，当 binder_fd
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
     }
     // 默认 /dev/binder，如果 argc == 2，则使用 /dev/vndbinder，这是供应商进程之间可以使用的 binder
     const char* driver = argc == 2 ? argv[1] : "/dev/binder";
-    // 1. open(), mmap()
+    // open(), mmap()
     sp<ProcessState> ps = ProcessState::initWithDriver(driver);
     ps->setThreadPoolMaxThreadCount(0);
     ps->setCallRestriction(ProcessState::CallRestriction::FATAL_IF_NOT_ONEWAY);
@@ -136,11 +136,12 @@ int main(int argc, char** argv) {
     ps->becomeContextManager(); // 2. 注册到驱动，成为 Binder 管理员，handle 是 0
     // 准备 looper
     sp<Looper> looper = Looper::prepare(false /*allowNonCallbacks*/);
-    // 通知驱动 BC_ENTER_LOOPER ，监听驱动 fd ，有消息时回调到 handleEvent 处理 binder 调用
+    // 通知驱动 BC_ENTER_LOOPER，监听驱动 fd ，有消息时回调到 handleEvent 处理 binder 调用
     BinderCallback::setupTo(looper);
     ClientCallbackCallback::setupTo(looper, manager); // 服务的注册监听相关
 
     while(true) {
+        // -1: 一直阻塞，不会超时
         looper->pollAll(-1); // 无线循环监听
     }
 

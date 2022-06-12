@@ -834,7 +834,7 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
         mFactoryTest = FactoryTest.getMode();
         mSystemThread = ActivityThread.currentActivityThread();
         mUiContext = mSystemThread.getSystemUiContext();
-        mLifecycleManager = new ClientLifecycleManager();
+        mLifecycleManager = new ClientLifecycleManager(); // APP Activity 生命周期相关，Android P 开始有的
         mVisibleActivityProcessTracker = new VisibleActivityProcessTracker(this);
         mInternal = new LocalService();
         GL_ES_VERSION = SystemProperties.getInt("ro.opengles.version", GL_ES_VERSION_UNDEFINED);
@@ -1159,7 +1159,7 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
         @Override
         public void onStart() {
             publishBinderService(Context.ACTIVITY_TASK_SERVICE, mService);
-            mService.start();
+            mService.start(); // 启动 ATMS
         }
 
         @Override

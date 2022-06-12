@@ -2293,7 +2293,8 @@ static int binder_proc_transaction(struct binder_transaction *t,
         binder_transaction_priority(thread->task, t, node_prio,
                         node->inherit_rt);
         // 此次通信事务 t 记录在 target_thread 的 todo 链表
-        binder_enqueue_thread_work_ilocked(thread, &t->work); // 将 t 加入到目标线程的处理队列中
+        // 将 t 加入到目标线程的target_thread 的 todo 链表中并配置 thread->process_todo = true
+        binder_enqueue_thread_work_ilocked(thread, &t->work);
     } else if (!pending_async) {
         // 如果上面 binder_thread 为空，则记录到 target_proc 的 todo 链表
         binder_enqueue_work_ilocked(&t->work, &proc->todo);
@@ -2995,6 +2996,7 @@ static void binder_transaction(struct binder_proc *proc,
         // 链表取出一个空闲的 binder 线程赋值给 target_thread
         // 将 t 加入到 target_thread->todo 处理队列中，
         // 向目标进程发送事务 BINDER_WORK_TRANSACTION 并将其唤醒
+        // 并配置 thread->process_todo = true
         return_error = binder_proc_transaction(t,
                 target_proc, target_thread);
         if (return_error) {
