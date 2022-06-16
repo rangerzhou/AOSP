@@ -993,7 +993,7 @@ public class ActivityTaskSupervisor implements RecentTasks.Callbacks {
                 mService.getProcessController(r.processName, r.info.applicationInfo.uid);
 
         boolean knownToBeDead = false;
-        if (wpc != null && wpc.hasThread()) {
+        if (wpc != null && wpc.hasThread()) { // 如果 app 已经启动
             try {
                 realStartActivityLocked(r, wpc, andResume, checkConfig);
                 return;

@@ -1055,7 +1055,7 @@ class TaskFragment extends WindowContainer<WindowContainer> {
             // it isn't null.
             lastResumed = lastFocusedRootTask.getTopResumedActivity();
         }
-
+        // 将发起者置为 pause 状态，也就是 mainactivity 置为 onPause 状态
         boolean pausing = !deferPause && taskDisplayArea.pauseBackTasks(next);
         if (mResumedActivity != null) {
             ProtoLog.d(WM_DEBUG_STATES, "resumeTopActivity: Pausing %s", mResumedActivity);
@@ -1144,9 +1144,9 @@ class TaskFragment extends WindowContainer<WindowContainer> {
         // We are starting up the next activity, so tell the window manager
         // that the previous one will be hidden soon.  This way it can know
         // to ignore it when computing the desired screen orientation.
-        boolean anim = true;
+        boolean anim = true; // 这里准备开启页面
         final DisplayContent dc = taskDisplayArea.mDisplayContent;
-        if (prev != null) {
+        if (prev != null) { // 处理 activity 启动的动画
             if (prev.finishing) {
                 if (DEBUG_TRANSITION) {
                     Slog.v(TAG_TRANSITION, "Prepare close transition: prev=" + prev);

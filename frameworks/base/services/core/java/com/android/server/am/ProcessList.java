@@ -2393,14 +2393,14 @@ public final class ProcessList {
 
             final Process.ProcessStartResult startResult;
             boolean regularZygote = false;
-            if (hostingRecord.usesWebviewZygote()) {
+            if (hostingRecord.usesWebviewZygote()) { // 进程是否应该从 webview zygote 产生
                 startResult = startWebView(entryPoint,
                         app.processName, uid, uid, gids, runtimeFlags, mountExternal,
                         app.info.targetSdkVersion, seInfo, requiredAbi, instructionSet,
                         app.info.dataDir, null, app.info.packageName,
                         app.getDisabledCompatChanges(),
                         new String[]{PROC_START_SEQ_IDENT + app.getStartSeq()});
-            } else if (hostingRecord.usesAppZygote()) {
+            } else if (hostingRecord.usesAppZygote()) { // 进程是否应该从应用程序 zygote 中产生
                 final AppZygote appZygote = createAppZygoteForProcessIfNeeded(app);
 
                 // We can't isolate app data and storage data as parent zygote already did that.
