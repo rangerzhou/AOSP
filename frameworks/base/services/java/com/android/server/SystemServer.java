@@ -1135,6 +1135,7 @@ public final class SystemServer implements Dumpable {
         t.traceEnd();
 
         // Only run "core" apps if we're encrypting the device.
+        // 如果手机加密，只运行核心 app
         String cryptState = VoldProperties.decrypt().orElse("");
         if (ENCRYPTING_STATE.equals(cryptState)) {
             Slog.w(TAG, "Detected encryption in progress - only parsing core apps");

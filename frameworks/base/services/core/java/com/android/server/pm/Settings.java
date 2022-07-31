@@ -2823,6 +2823,7 @@ public final class Settings implements Watchable, Snappable {
                     // If both the backup and settings file exist, we
                     // ignore the settings since it might have been
                     // corrupted.
+                    // 两个目录同时存在，则删除 packages.xml
                     Slog.w(PackageManagerService.TAG, "Cleaning up settings file "
                             + mSettingsFilename);
                     mSettingsFilename.delete();
@@ -2849,9 +2850,10 @@ public final class Settings implements Watchable, Snappable {
                     findOrCreateVersion(StorageManager.UUID_PRIMARY_PHYSICAL).forceCurrent();
                     return false;
                 }
+                // 如果 packages-backup.xml 没数据，则读取 packages.xml 中的数据
                 str = new FileInputStream(mSettingsFilename);
             }
-            final TypedXmlPullParser parser = Xml.resolvePullParser(str);
+            final TypedXmlPullParser parser = Xml.resolvePullParser(str); // xml 解析器，解析 packages.xml
 
             int type;
             while ((type = parser.next()) != XmlPullParser.START_TAG

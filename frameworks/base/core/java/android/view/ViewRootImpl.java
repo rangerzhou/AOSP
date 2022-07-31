@@ -1033,7 +1033,7 @@ public final class ViewRootImpl implements ViewParent,
             int userId) {
         synchronized (this) {
             if (mView == null) {
-                mView = view;
+                mView = view; // 1.保存传入的 view 参数为 mView，指向 PhoneWindow.mDecor(DecorView)
 
                 mAttachInfo.mDisplayState = mDisplay.getState();
                 mViewLayoutDirectionInitial = mView.getRawLayoutDirection();
@@ -1123,7 +1123,7 @@ public final class ViewRootImpl implements ViewParent,
                 // Schedule the first layout -before- adding to the window
                 // manager, to make sure we do the relayout before receiving
                 // any other events from the system.
-                requestLayout();
+                requestLayout(); // 2.发送一个 Handler 消息
                 InputChannel inputChannel = null;
                 if ((mWindowAttributes.inputFeatures
                         & WindowManager.LayoutParams.INPUT_FEATURE_NO_INPUT_CHANNEL) == 0) {
@@ -1146,6 +1146,7 @@ public final class ViewRootImpl implements ViewParent,
                     collectViewAttributes();
                     adjustLayoutParamsForCompatibility(mWindowAttributes);
                     controlInsetsForCompatibility(mWindowAttributes);
+                    // 3.
                     res = mWindowSession.addToDisplayAsUser(mWindow, mWindowAttributes,
                             getHostVisibility(), mDisplay.getDisplayId(), userId,
                             mInsetsController.getRequestedVisibilities(), inputChannel, mTempInsets,
@@ -2150,9 +2151,9 @@ public final class ViewRootImpl implements ViewParent,
     void scheduleTraversals() {
         if (!mTraversalScheduled) {
             mTraversalScheduled = true;
-            mTraversalBarrier = mHandler.getLooper().getQueue().postSyncBarrier();
+            mTraversalBarrier = mHandler.getLooper().getQueue().postSyncBarrier(); // 同步屏障
             mChoreographer.postCallback(
-                    Choreographer.CALLBACK_TRAVERSAL, mTraversalRunnable, null);
+                    Choreographer.CALLBACK_TRAVERSAL, mTraversalRunnable, null); // 会执行 TraversalRunnable.run
             notifyRendererOfFramePending();
             pokeDrawLockIfNeeded();
         }

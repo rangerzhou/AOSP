@@ -3622,7 +3622,7 @@ static int binder_wait_for_work(struct binder_thread *thread,
             break;
         // 如果是在等待处理本进程的todo队列的任务
         if (do_proc_work)
-            // 把本线程的 waiting_thread_node 添加到所属进程的 waiting_threads 中
+            // 把本线程的 waiting_thread_node 插入到所属进程的 waiting_threads 中
             list_add(&thread->waiting_thread_node,
                  &proc->waiting_threads);
         trace_android_vh_binder_wait_for_work(do_proc_work, thread, proc);
@@ -4151,8 +4151,8 @@ static struct binder_thread *binder_get_thread_ilocked(
 {
     struct binder_thread *thread = NULL;
     struct rb_node *parent = NULL;
-    struct rb_node **p = &proc->threads.rb_node;
-    while (*p) {
+    struct rb_node **p = &proc->threads.rb_node; // 根据 proc 获取当前进程的线程树
+    while (*p) { // 遍历线程树
         parent = *p;
         thread = rb_entry(parent, struct binder_thread, rb_node);
         if (current->pid < thread->pid)
@@ -4160,12 +4160,13 @@ static struct binder_thread *binder_get_thread_ilocked(
         else if (current->pid > thread->pid)
             p = &(*p)->rb_right;
         else
-            return thread;
+            return thread; // 找到与当前线程匹配的线程，返回该线程节点
     }
-    if (!new_thread)
+    if (!new_thread) //  第一次调用的时候 new_thread 为 null
         return NULL;
-    thread = new_thread;
+    thread = new_thread; // 把新创建的 new_thread 赋值给 thread
     binder_stats_created(BINDER_STAT_THREAD);
+    // 以下为对 binder_thread 的初始化操作
     thread->proc = proc;
     thread->pid = current->pid;
     get_task_struct(current);
@@ -4174,8 +4175,8 @@ static struct binder_thread *binder_get_thread_ilocked(
     init_waitqueue_head(&thread->wait);
     INIT_LIST_HEAD(&thread->todo);
     rb_link_node(&thread->rb_node, parent, p);
-    rb_insert_color(&thread->rb_node, &proc->threads);
-    thread->looper_need_return = true;
+    rb_insert_color(&thread->rb_node, &proc->threads); // 把新创建的 biner_thread 插入到进程的线程树 threads 中
+    thread->looper_need_return = true; // 比较重要
     thread->return_error.work.type = BINDER_WORK_RETURN_ERROR;
     thread->return_error.cmd = BR_OK;
     thread->reply_error.work.type = BINDER_WORK_RETURN_ERROR;

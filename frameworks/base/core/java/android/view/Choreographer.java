@@ -475,7 +475,8 @@ public final class Choreographer {
             if (dueTime <= now) {
                 scheduleFrameLocked(now);
             } else {
-                Message msg = mHandler.obtainMessage(MSG_DO_SCHEDULE_CALLBACK, action);
+                // 发送 MSG_DO_SCHEDULE_CALLBACK，在 Choreographer 中处理
+                Message msg = mHandler.obtainMessage(MSG_DO_SCHEDULE_CALLBACK, action); // msg.obj = action
                 msg.arg1 = callbackType;
                 msg.setAsynchronous(true);
                 mHandler.sendMessageAtTime(msg, dueTime);
@@ -648,7 +649,7 @@ public final class Choreographer {
                     scheduleVsyncLocked();
                 } else {
                     Message msg = mHandler.obtainMessage(MSG_DO_SCHEDULE_VSYNC);
-                    msg.setAsynchronous(true);
+                    msg.setAsynchronous(true); // 异步消息
                     mHandler.sendMessageAtFrontOfQueue(msg);
                 }
             } else {
@@ -658,7 +659,7 @@ public final class Choreographer {
                     Log.d(TAG, "Scheduling next frame in " + (nextFrameTime - now) + " ms.");
                 }
                 Message msg = mHandler.obtainMessage(MSG_DO_FRAME);
-                msg.setAsynchronous(true);
+                msg.setAsynchronous(true); // 异步消息
                 mHandler.sendMessageAtTime(msg, nextFrameTime);
             }
         }

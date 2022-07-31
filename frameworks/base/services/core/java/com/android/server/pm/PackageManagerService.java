@@ -7450,10 +7450,10 @@ public class PackageManagerService extends IPackageManager.Stub
             mDefParseFlags = 0;
             mSeparateProcesses = null;
         }
-
+        // mPackageDexOptimizer 和 mDexManager 用于处理 dex 优化
         mPackageDexOptimizer = injector.getPackageDexOptimizer();
         mDexManager = injector.getDexManager();
-        mArtManagerService = injector.getArtManagerService();
+        mArtManagerService = injector.getArtManagerService(); // ART 虚拟机管理服务
         mMoveCallbacks = new MoveCallbacks(FgThread.get().getLooper());
         mViewCompiler = injector.getViewCompiler();
 
@@ -7461,6 +7461,8 @@ public class PackageManagerService extends IPackageManager.Stub
                 .getDisplay(Display.DEFAULT_DISPLAY).getMetrics(mMetrics);
 
         t.traceBegin("get system config");
+        // 创建 SystemConfig 实例，获取系统配置信息，配置共享 lib 库；
+        // 拿到 SystemConfig 的对象，其中会调用 SystemConfig.readPermissions() 完成权限的读取
         SystemConfig systemConfig = injector.getSystemConfig();
         mAvailableFeatures = systemConfig.getAvailableFeatures();
         t.traceEnd();
@@ -7514,6 +7516,7 @@ public class PackageManagerService extends IPackageManager.Stub
         synchronized (mLock) {
             mHandler = injector.getHandler();
             mProcessLoggingHandler = new ProcessLoggingHandler();
+            // Watchdog 监听  是否超时：10分钟
             Watchdog.getInstance().addThread(mHandler, WATCHDOG_TIMEOUT);
 
             ArrayMap<String, SystemConfig.SharedLibraryEntry> libConfig
@@ -7546,6 +7549,7 @@ public class PackageManagerService extends IPackageManager.Stub
             t.traceEnd();
 
             t.traceBegin("read user settings");
+            // 读取并解析 /data/system 下的 XML 文件
             mFirstBoot = !mSettings.readLPw(mInjector.getUserManagerInternal().getUsers(
                     /* excludePartial= */ true,
                     /* excludeDying= */ false,
@@ -7843,6 +7847,7 @@ public class PackageManagerService extends IPackageManager.Stub
                  * the userdata partition actually showed up. If they never
                  * appeared, crawl back and revive the system version.
                  */
+                // 确保 userdata 分区上的系统应用都实际出现
                 for (int i = 0; i < mExpectingBetter.size(); i++) {
                     final String packageName = mExpectingBetter.keyAt(i);
                     if (!mPackages.containsKey(packageName)) {
@@ -11938,17 +11943,18 @@ public class PackageManagerService extends IPackageManager.Stub
         int fileCount = 0;
         for (File file : files) {
             final boolean isPackage = (isApkFile(file) || file.isDirectory())
-                    && !PackageInstallerService.isStageName(file.getName());
+                    && !PackageInstallerService.isStageName(file.getName()); // 必须是 apk 或者目录
             if (!isPackage) {
                 // Ignore entries which are not packages
                 continue;
             }
-            parallelPackageParser.submit(file, parseFlags);
+            parallelPackageParser.submit(file, parseFlags); // 提交文件并行解析
             fileCount++;
         }
 
-        // Process results one by one
+        // Process results one by one 处理扫描结果
         for (; fileCount > 0; fileCount--) {
+            // 获取扫描结果
             ParallelPackageParser.ParseResult parseResult = parallelPackageParser.take();
             Throwable throwable = parseResult.throwable;
             int errorCode = PackageManager.INSTALL_SUCCEEDED;
@@ -12366,7 +12372,7 @@ public class PackageManagerService extends IPackageManager.Stub
                                 + parsedPackage.getPath());
             }
         }
-
+        // 继续扫描
         final ScanResult scanResult = scanPackageNewLI(parsedPackage, parseFlags, scanFlags
                 | SCAN_UPDATE_SIGNATURE, currentTime, user, null);
         if (scanResult.success) {
@@ -12374,6 +12380,7 @@ public class PackageManagerService extends IPackageManager.Stub
                 boolean appIdCreated = false;
                 try {
                     final String pkgName = scanResult.pkgSetting.name;
+                    // 进行一致化处理，对重新扫描的结果进行一些小的调整
                     final Map<String, ReconciledPackage> reconcileResult = reconcilePackagesLocked(
                             new ReconcileRequest(
                                     Collections.singletonMap(pkgName, scanResult),
@@ -12385,6 +12392,7 @@ public class PackageManagerService extends IPackageManager.Stub
                                             getSharedLibLatestVersionSetting(scanResult))),
                             mSettings.getKeySetManagerService(), mInjector);
                     appIdCreated = optimisticallyRegisterAppId(scanResult);
+                    // 提交包扫描结果、更新系统状态，例如把结果写到 packages.xml 中
                     commitReconciledScanResultLocked(
                             reconcileResult.get(pkgName), mUserManager.getUserIds());
                 } catch (PackageManagerException e) {
@@ -15326,6 +15334,7 @@ public class PackageManagerService extends IPackageManager.Stub
      * Adds a scanned package to the system. When this method is finished, the package will
      * be available for query, resolution, etc...
      */
+    // 向系统添加扫描完成的包，那么这个包对于系统成为可用状态
     private void commitPackageSettings(@NonNull AndroidPackage pkg, @Nullable AndroidPackage oldPkg,
             @NonNull PackageSetting pkgSetting, @Nullable PackageSetting oldPkgSetting,
             final @ScanFlags int scanFlags, boolean chatty, ReconciledPackage reconciledPkg) {
@@ -15434,9 +15443,9 @@ public class PackageManagerService extends IPackageManager.Stub
         synchronized (mLock) {
             // We don't expect installation to fail beyond this point
             // Add the new setting to mSettings
-            mSettings.insertPackageSettingLPw(pkgSetting, pkg);
+            mSettings.insertPackageSettingLPw(pkgSetting, pkg); // 添加到 mSettings
             // Add the new setting to mPackages
-            mPackages.put(pkg.getPackageName(), pkg);
+            mPackages.put(pkg.getPackageName(), pkg); // 添加到 mPackages
             if ((scanFlags & SCAN_AS_APK_IN_APEX) != 0) {
                 mApexManager.registerApkInApex(pkg);
             }
@@ -15444,7 +15453,7 @@ public class PackageManagerService extends IPackageManager.Stub
             // Add the package's KeySets to the global KeySetManagerService
             KeySetManagerService ksms = mSettings.getKeySetManagerService();
             ksms.addScannedPackageLPw(pkg);
-
+            // 添加组件到 mComponentResolver：所有的四大组件信息添加到内部数据结构中
             mComponentResolver.addAllComponents(pkg, chatty);
             final boolean isReplace =
                     reconciledPkg.prepareResult != null && reconciledPkg.prepareResult.replace;
@@ -15460,6 +15469,7 @@ public class PackageManagerService extends IPackageManager.Stub
             int collectionSize = ArrayUtils.size(pkg.getInstrumentations());
             StringBuilder r = null;
             int i;
+            // 添加 mInstrumentation
             for (i = 0; i < collectionSize; i++) {
                 ParsedInstrumentation a = pkg.getInstrumentations().get(i);
                 a.setPackageName(pkg.getPackageName());
@@ -17432,10 +17442,10 @@ public class PackageManagerService extends IPackageManager.Stub
             }
             if (success) {
                 for (InstallRequest request : apkInstallRequests) {
-                    request.args.doPreInstall(request.installResult.returnCode);
+                    request.args.doPreInstall(request.installResult.returnCode); // 安装前检查
                 }
                 synchronized (mInstallLock) {
-                    installPackagesTracedLI(apkInstallRequests);
+                    installPackagesTracedLI(apkInstallRequests); // 安装，解析 apk
                 }
                 for (InstallRequest request : apkInstallRequests) {
                     request.args.doPostInstall(
@@ -17443,6 +17453,7 @@ public class PackageManagerService extends IPackageManager.Stub
                 }
             }
             for (InstallRequest request : apkInstallRequests) {
+                // 安装后续：备份、可能的回滚、发送安装完成先关广播
                 restoreAndPostInstall(request.args.user.getIdentifier(), request.installResult,
                         new PostInstallData(request.args, request.installResult, null));
             }
@@ -19983,7 +19994,7 @@ public class PackageManagerService extends IPackageManager.Stub
                 try {
                     Trace.traceBegin(TRACE_TAG_PACKAGE_MANAGER, "preparePackage");
                     prepareResult =
-                            preparePackageLI(request.args, request.installResult);
+                            preparePackageLI(request.args, request.installResult); //1.准备：分析当前安装状态，解析包并初始验证
                 } catch (PrepareFailure prepareFailure) {
                     request.installResult.setError(prepareFailure.error,
                             prepareFailure.getMessage());
@@ -20002,6 +20013,7 @@ public class PackageManagerService extends IPackageManager.Stub
                 installResults.put(packageName, request.installResult);
                 installArgs.put(packageName, request.args);
                 try {
+                    // 2.扫描：根据准备阶段解析的包信息上下文，进一步解析
                     final ScanResult result = scanPackageTracedLI(
                             prepareResult.packageToScan, prepareResult.parseFlags,
                             prepareResult.scanFlags, System.currentTimeMillis(),
@@ -20040,6 +20052,7 @@ public class PackageManagerService extends IPackageManager.Stub
                 Map<String, ReconciledPackage> reconciledPackages;
                 try {
                     Trace.traceBegin(TRACE_TAG_PACKAGE_MANAGER, "reconcilePackages");
+                    // 3.核对：验证扫描后的包信息和系统状态，确保安装成功
                     reconciledPackages = reconcilePackagesLocked(
                             reconcileRequest, mSettings.getKeySetManagerService(), mInjector);
                 } catch (ReconcileFailure e) {
@@ -20053,14 +20066,14 @@ public class PackageManagerService extends IPackageManager.Stub
                 try {
                     Trace.traceBegin(TRACE_TAG_PACKAGE_MANAGER, "commitPackages");
                     commitRequest = new CommitRequest(reconciledPackages,
-                            mUserManager.getUserIds());
+                            mUserManager.getUserIds()); // 4.提交：提交扫描的包、更新系统状态
                     commitPackagesLocked(commitRequest);
                     success = true;
                 } finally {
                     Trace.traceEnd(TRACE_TAG_PACKAGE_MANAGER);
                 }
             }
-            executePostCommitSteps(commitRequest);
+            executePostCommitSteps(commitRequest); // 安装成功后，准备 app 数据、编译布局资源、执行 dex 优化
         } finally {
             if (success) {
                 for (InstallRequest request : requests) {
@@ -20129,6 +20142,7 @@ public class PackageManagerService extends IPackageManager.Stub
                 }
                 incrementalStorages.add(storage);
             }
+            // 提供目录结构 /data/user/用户ID/包名/cache（/data/user/用户ID/包名/code_cache）
             prepareAppDataAfterInstallLIF(pkg);
             if (reconciledPkg.prepareResult.clearCodeCache) {
                 clearAppDataLIF(pkg, UserHandle.USER_ALL, FLAG_STORAGE_DE | FLAG_STORAGE_CE
@@ -20228,7 +20242,7 @@ public class PackageManagerService extends IPackageManager.Stub
                         .isUpdatedSystemApp();
 
                 realPkgSetting.getPkgState().setUpdatedSystemApp(isUpdatedSystemApp);
-
+                // 执行 dex 优化
                 mPackageDexOptimizer.performDexOpt(pkg, realPkgSetting,
                         null /* instructionSets */,
                         getOrCreateCompilerPackageStats(pkg),

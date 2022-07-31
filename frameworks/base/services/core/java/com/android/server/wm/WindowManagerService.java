@@ -1762,7 +1762,7 @@ public class WindowManagerService extends IWindowManager.Stub
                 displayContent.mTapExcludedWindows.add(win);
             }
 
-            win.attach();
+            win.attach(); // 调用 attach 函数
             mWindowMap.put(client.asBinder(), win);
             win.initAppOpsState();
 
@@ -7599,7 +7599,7 @@ public class WindowManagerService extends IWindowManager.Stub
                 WindowsForAccessibilityCallback callback) {
             synchronized (mGlobalLock) {
                 return mAccessibilityController
-                        .setWindowsForAccessibilityCallback(displayId, callback);  
+                        .setWindowsForAccessibilityCallback(displayId, callback);
             }
         }
 

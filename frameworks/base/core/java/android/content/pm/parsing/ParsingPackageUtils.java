@@ -440,6 +440,7 @@ public class ParsingPackageUtils {
 
         final SplitAssetLoader assetLoader = new DefaultSplitAssetLoader(lite, flags);
         try {
+            // 对核心应用解析
             final ParseResult<ParsingPackage> result = parseBaseApk(input,
                     apkFile,
                     apkFile.getCanonicalPath(),
@@ -477,11 +478,12 @@ public class ParsingPackageUtils {
             return input.error(INSTALL_PARSE_FAILED_BAD_MANIFEST,
                     "Failed adding asset path: " + apkPath);
         }
-
+        // openXmlResourceParser：获取一个 xml 资源解析对象
+        // ANDROID_MANIFEST_FILENAME：指 AndroidManifest.xml
         try (XmlResourceParser parser = assets.openXmlResourceParser(cookie,
                 ANDROID_MANIFEST_FILENAME)) {
             final Resources res = new Resources(assets, mDisplayMetrics, null);
-
+            // 调用 parseBaseApk 进行解析
             ParseResult<ParsingPackage> result = parseBaseApk(input, apkPath, codePath, res,
                     parser, flags);
             if (result.isError()) {
@@ -610,6 +612,7 @@ public class ParsingPackageUtils {
                     parser.getAttributeBooleanValue(null, "coreApp", false);
             final ParsingPackage pkg = mCallback.startParsingPackage(
                     pkgName, apkPath, codePath, manifestArray, isCoreApp);
+            // 调用 parseBaseApkTags
             final ParseResult<ParsingPackage> result =
                     parseBaseApkTags(input, pkg, manifestArray, res, parser, flags);
             if (result.isError()) {
@@ -868,7 +871,7 @@ public class ParsingPackageUtils {
             final ParseResult result;
 
             // <application> has special logic, so it's handled outside the general method
-            if (TAG_APPLICATION.equals(tagName)) {
+            if (TAG_APPLICATION.equals(tagName)) { // 判断是是否是 Application 标签
                 if (foundApp) {
                     if (RIGID_PARSER) {
                         result = input.error("<manifest> has more than one <application>");
@@ -878,9 +881,11 @@ public class ParsingPackageUtils {
                     }
                 } else {
                     foundApp = true;
+                    // 是 application 标签，调用 parseBaseApplication 方法，解析 application
                     result = parseBaseApplication(input, pkg, res, parser, flags);
                 }
             } else {
+                // 如果不是 application 标签，调用 parseBaseApkTag 方法，解析核心应用的所有 tag
                 result = parseBaseApkTag(tagName, input, pkg, res, parser, flags);
             }
 
@@ -2057,13 +2062,13 @@ public class ParsingPackageUtils {
             }
 
             final ParseResult result;
-            String tagName = parser.getName();
+            String tagName = parser.getName(); // 获取 "application" 子标签的标签内容
             boolean isActivity = false;
             switch (tagName) {
                 case "activity":
                     isActivity = true;
                     // fall-through
-                case "receiver":
+                case "receiver": // 如果标签是 receiver，获取 receiver 信息
                     ParseResult<ParsedActivity> activityResult =
                             ParsedActivityUtils.parseActivityOrReceiver(mSeparateProcesses, pkg,
                                     res, parser, flags, sUseRoundIcon, input);
@@ -2081,7 +2086,7 @@ public class ParsingPackageUtils {
 
                     result = activityResult;
                     break;
-                case "service":
+                case "service": // 解析 servic
                     ParseResult<ParsedService> serviceResult =
                             ParsedServiceUtils.parseService(mSeparateProcesses, pkg, res, parser,
                                     flags, sUseRoundIcon, input);
