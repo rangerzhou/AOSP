@@ -1,4 +1,14 @@
 AOSP.si4project/
 .repo/
 .idea/
-
+/frameworks/av
+/frameworks/compile
+/frameworks/ex
+/frameworks/hardware
+/frameworks/layoutlib
+/frameworks/libs
+/frameworks/minikin
+/frameworks/multidex
+/frameworks/proto_logging
+/frameworks/rs
+/frameworks/wilhelm
