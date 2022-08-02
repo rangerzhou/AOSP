@@ -669,7 +669,7 @@ class ActivityStarter {
                 if (res != START_SUCCESS) {
                     return res;
                 }
-                res = executeRequest(mRequest); // 执行一系列权限检查，对于合法的请求才继续
+                res = executeRequest(mRequest); //
 
                 Binder.restoreCallingIdentity(origId);
 
@@ -1181,7 +1181,7 @@ class ActivityStarter {
         if (!restrictedBgActivity && !isHomeProcess) {
             mService.resumeAppSwitches();
         }
-        // 调用该方法时表示大部分初步的权限检查已经完成，执行 Trace，以及异常处理
+
         mLastStartActivityResult = startActivityUnchecked(r, sourceRecord, voiceSession,
                 request.voiceInteractor, startFlags, true /* doResume */, checkedOptions,
                 inTask, inTaskFragment, restrictedBgActivity, intentGrants);
@@ -1581,7 +1581,6 @@ class ActivityStarter {
         try {
             mService.deferWindowLayout();
             Trace.traceBegin(Trace.TRACE_TAG_WINDOW_MANAGER, "startActivityInner");
-            // 启动 Activity，并更新全局的 task 栈帧信息
             result = startActivityInner(r, sourceRecord, voiceSession, voiceInteractor,
                     startFlags, doResume, options, inTask, inTaskFragment, restrictedBgActivity,
                     intentGrants);
@@ -1799,9 +1798,9 @@ class ActivityStarter {
         }
         final Task startedTask = mStartActivity.getTask();
         if (newTask) {
-            EventLogTags.writeWmCreateTask(mStartActivity.mUserId, startedTask.mTaskId);
+            com.android.server.wm.EventLogTags.writeWmCreateTask(mStartActivity.mUserId, startedTask.mTaskId);
         }
-        mStartActivity.logStartActivity(EventLogTags.WM_CREATE_ACTIVITY, startedTask);
+        mStartActivity.logStartActivity(com.android.server.wm.EventLogTags.WM_CREATE_ACTIVITY, startedTask);
 
         mStartActivity.getTaskFragment().clearLastPausedActivity();
 
@@ -1809,7 +1808,6 @@ class ActivityStarter {
                 false /* forceSend */, mStartActivity);
 
         final boolean isTaskSwitch = startedTask != prevTopTask && !startedTask.isEmbedded();
-        //
         mTargetRootTask.startActivityLocked(mStartActivity,
                 topRootTask != null ? topRootTask.getTopNonFinishingActivity() : null, newTask,
                 isTaskSwitch, mOptions, sourceRecord);
@@ -2798,7 +2796,7 @@ class ActivityStarter {
             return;
         }
 
-        activity.logStartActivity(EventLogTags.WM_NEW_INTENT, activity.getTask());
+        activity.logStartActivity(com.android.server.wm.EventLogTags.WM_NEW_INTENT, activity.getTask());
         activity.deliverNewIntentLocked(mCallingUid, mStartActivity.intent, intentGrants,
                 mStartActivity.launchedFromPackage);
         mIntentDelivered = true;

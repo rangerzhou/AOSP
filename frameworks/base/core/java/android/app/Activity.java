@@ -7940,11 +7940,11 @@ public class Activity extends ContextThemeWrapper
             Configuration config, String referrer, IVoiceInteractor voiceInteractor,
             Window window, ActivityConfigCallback activityConfigCallback, IBinder assistToken,
             IBinder shareableActivityToken) {
-        attachBaseContext(context);
+        attachBaseContext(context); // 保存当前 ContextImpl
 
         mFragments.attachHost(null /*parent*/);
 
-        mWindow = new PhoneWindow(this, window, activityConfigCallback);
+        mWindow = new PhoneWindow(this, window, activityConfigCallback); // 创建 PhoneWindow
         mWindow.setWindowControllerCallback(mWindowControllerCallback);
         mWindow.setCallback(this);
         mWindow.setOnWindowDismissedCallback(this);
@@ -7980,7 +7980,7 @@ public class Activity extends ContextThemeWrapper
                         Looper.myLooper());
             }
         }
-
+        // 设置 PhoneWindow 的 WindowManager
         mWindow.setWindowManager(
                 (WindowManager)context.getSystemService(Context.WINDOW_SERVICE),
                 mToken, mComponent.flattenToString(),
@@ -7988,7 +7988,7 @@ public class Activity extends ContextThemeWrapper
         if (mParent != null) {
             mWindow.setContainer(mParent.getWindow());
         }
-        mWindowManager = mWindow.getWindowManager();
+        mWindowManager = mWindow.getWindowManager(); // 保存 PhoneWindow 的 WindowManager 到 Activity 的 mWindowManager
         mCurrentConfig = config;
 
         mWindow.setColorMode(info.colorMode);

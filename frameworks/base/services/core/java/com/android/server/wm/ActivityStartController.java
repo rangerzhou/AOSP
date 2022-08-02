@@ -170,7 +170,7 @@ public class ActivityStartController {
         } finally {
             mSupervisor.endDeferResume();
         }
-
+        // 获取一个 ActivityStarter，设置参数，然后 execute
         mLastHomeActivityStartResult = obtainStarter(intent, "startHomeActivity: " + reason)
                 .setOutActivity(tmpOutRecord)
                 .setCallingUid(0)

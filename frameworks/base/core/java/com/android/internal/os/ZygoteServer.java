@@ -425,7 +425,7 @@ class ZygoteServer {
     Runnable runSelectLoop(String abiList) {
         ArrayList<FileDescriptor> socketFDs = new ArrayList<>();
         ArrayList<ZygoteConnection> peers = new ArrayList<>();
-
+        // mZygoteSocket 是 socket 通信的服务端，即 zygote 进程，把 fd 添加到 socketFDs
         socketFDs.add(mZygoteSocket.getFileDescriptor());
         peers.add(null);
 
@@ -538,7 +538,7 @@ class ZygoteServer {
 
                     if (pollIndex == 0) {
                         // Zygote server socket
-                        ZygoteConnection newPeer = acceptCommandPeer(abiList); // 创建 ZygoteConnection
+                        ZygoteConnection newPeer = acceptCommandPeer(abiList);
                         peers.add(newPeer);
                         socketFDs.add(newPeer.getFileDescriptor());
                     } else if (pollIndex < usapPoolEventFDIndex) {

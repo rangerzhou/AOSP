@@ -709,7 +709,7 @@ public final class SystemServer implements Dumpable {
             SystemProperties.set(SYSPROP_START_ELAPSED, String.valueOf(mRuntimeStartElapsedTime));
             SystemProperties.set(SYSPROP_START_UPTIME, String.valueOf(mRuntimeStartUptime));
 
-            EventLog.writeEvent(EventLogTags.SYSTEM_SERVER_START,
+            EventLog.writeEvent(com.android.server.EventLogTags.SYSTEM_SERVER_START,
                     mStartCount, mRuntimeStartUptime, mRuntimeStartElapsedTime);
 
             //
@@ -753,7 +753,7 @@ public final class SystemServer implements Dumpable {
             // Here we go!
             Slog.i(TAG, "Entered the Android system server!");
             final long uptimeMillis = SystemClock.elapsedRealtime();
-            EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_SYSTEM_RUN, uptimeMillis);
+            EventLog.writeEvent(com.android.server.EventLogTags.BOOT_PROGRESS_SYSTEM_RUN, uptimeMillis);
             if (!mRuntimeRestart) {
                 FrameworkStatsLog.write(FrameworkStatsLog.BOOT_TIME_EVENT_ELAPSED_TIME_REPORTED,
                         FrameworkStatsLog
@@ -820,7 +820,7 @@ public final class SystemServer implements Dumpable {
             performPendingShutdown();
 
             // Initialize the system context.
-            createSystemContext(); // 1. 加载系统资源
+            createSystemContext();
 
             // Call per-process mainline module initialization.
             ActivityThread.initializeMainlineModules();
@@ -873,11 +873,11 @@ public final class SystemServer implements Dumpable {
         RuntimeInit.setDefaultApplicationWtfHandler(SystemServer::handleEarlySystemWtf);
 
         // Start services.
-        try { // 2. 启动服务
+        try {
             t.traceBegin("StartServices");
-            startBootstrapServices(t); // 启动引导服务
-            startCoreServices(t); // 启动核心服务
-            startOtherServices(t); // 启动其他服务
+            startBootstrapServices(t);
+            startCoreServices(t);
+            startOtherServices(t);
         } catch (Throwable ex) {
             Slog.e("System", "******************************************");
             Slog.e("System", "************ Failure starting system services", ex);
@@ -1025,6 +1025,9 @@ public final class SystemServer implements Dumpable {
         // Wait for installd to finish starting up so that it has a chance to
         // create critical directories such as /data/user with the appropriate
         // permissions.  We need this to complete before we initialize other services.
+        // 第一步：启动 Installer
+        // 阻塞等待 installd 完成启动,以便有机会创建具有适当权限的关键目录,如 /data/user。
+        // 我们需要在初始化其他服务之前完成此任务
         t.traceBegin("StartInstaller");
         Installer installer = mSystemServiceManager.startService(Installer.class);
         t.traceEnd();
@@ -1135,7 +1138,7 @@ public final class SystemServer implements Dumpable {
         t.traceEnd();
 
         // Only run "core" apps if we're encrypting the device.
-        // 如果手机加密，只运行核心 app
+        // 第二步:获取设备是否加密(手机设置密码),如果设备加密了,则只解析"core"应用, mOnlyCore = true,后面会频繁使用该变量进行条件判断
         String cryptState = VoldProperties.decrypt().orElse("");
         if (ENCRYPTING_STATE.equals(cryptState)) {
             Slog.w(TAG, "Detected encryption in progress - only parsing core apps");
@@ -1162,6 +1165,7 @@ public final class SystemServer implements Dumpable {
         t.traceBegin("StartPackageManagerService");
         try {
             Watchdog.getInstance().pauseWatchingCurrentThread("packagemanagermain");
+            // 第三步：初始化 PKMS
             mPackageManagerService = PackageManagerService.main(mSystemContext, installer,
                     domainVerificationService, mFactoryTestMode != FactoryTest.FACTORY_TEST_OFF,
                     mOnlyCore);
@@ -1186,6 +1190,7 @@ public final class SystemServer implements Dumpable {
         // Manages A/B OTA dexopting. This is a bootstrap service as we need it to rename
         // A/B artifacts after boot, before anything else might touch/need them.
         // Note: this isn't needed during decryption (we don't have /data anyways).
+        // 第四步：如果设备没有加密，操作它。管理 A/B OTA dexopting
         if (!mOnlyCore) {
             boolean disableOtaDexopt = SystemProperties.getBoolean("config.disable_otadexopt",
                     false);
@@ -1661,6 +1666,7 @@ public final class SystemServer implements Dumpable {
             t.traceBegin("UpdatePackagesIfNeeded");
             try {
                 Watchdog.getInstance().pauseWatchingCurrentThread("dexopt");
+                // 第五步：如果设备没有加密，内部调用 performDexOptUpgrade 完成 dex 优化
                 mPackageManagerService.updatePackagesIfNeeded();
             } catch (Throwable e) {
                 reportWtf("update packages", e);
@@ -1672,6 +1678,7 @@ public final class SystemServer implements Dumpable {
 
         t.traceBegin("PerformFstrimIfNeeded");
         try {
+            // 第六步：完成磁盘维护
             mPackageManagerService.performFstrimIfNeeded();
         } catch (Throwable e) {
             reportWtf("performing fstrim", e);

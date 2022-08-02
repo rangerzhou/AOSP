@@ -478,8 +478,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         // Note: FEATURE_CONTENT_TRANSITIONS may be set in the process of installing the window
         // decor, when theme attributes and the like are crystalized. Do not check the feature
         // before this happens.
-        if (mContentParent == null) {
-            installDecor();
+        if (mContentParent == null) { // mContentParent 是 mDecor 本身，或者是 mDecor 的一部分
+            installDecor(); // 创建 PhoneWindow.mDecor(DecorView类型)，获取 mContentParent
         } else if (!hasFeature(FEATURE_CONTENT_TRANSITIONS)) {
             mContentParent.removeAllViews();
         }
@@ -489,7 +489,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             final Scene newScene = new Scene(mContentParent, view);
             transitionTo(newScene);
         } else {
-            mContentParent.addView(view, params);
+            mContentParent.addView(view, params); // 把 view 添加到 ViewGroup 中
         }
         mContentParent.requestApplyInsets();
         final Callback cb = getCallback();
@@ -2610,7 +2610,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                 TypedValue res = new TypedValue();
                 getContext().getTheme().resolveAttribute(
                         R.attr.dialogTitleIconsDecorLayout, res, true);
-                layoutResource = res.resourceId;
+                layoutResource = res.resourceId; // 获取对应标题栏的资源 id
             } else {
                 layoutResource = R.layout.screen_title_icons;
             }
@@ -2661,9 +2661,9 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         }
 
         mDecor.startChanging();
-        mDecor.onResourcesLoaded(mLayoutInflater, layoutResource);
-
-        ViewGroup contentParent = (ViewGroup)findViewById(ID_ANDROID_CONTENT);
+        mDecor.onResourcesLoaded(mLayoutInflater, layoutResource); // 加入标题栏
+        // ID_ANDROID_CONTENT 定义在 Window 中：com.android.internal.R.id.content
+        ViewGroup contentParent = (ViewGroup)findViewById(ID_ANDROID_CONTENT); // contentParent 是 PhoneWindow.mDecor 的一部分
         if (contentParent == null) {
             throw new RuntimeException("Window couldn't find content container view");
         }
@@ -2714,7 +2714,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
     private void installDecor() {
         mForceDecorInstall = false;
         if (mDecor == null) {
-            mDecor = generateDecor(-1);
+            mDecor = generateDecor(-1); // 创建 DecorView mDecor，继承自 FrameLayout
             mDecor.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
             mDecor.setIsRootNamespace(true);
             if (!mInvalidatePanelMenuPosted && mInvalidatePanelMenuFeatures != 0) {
@@ -2724,7 +2724,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             mDecor.setWindow(this);
         }
         if (mContentParent == null) {
-            mContentParent = generateLayout(mDecor);
+            mContentParent = generateLayout(mDecor); // 得到 ViewGroup 对象，处理标题栏显示等
 
             // Set up decor part of UI to ignore fitsSystemWindows if appropriate.
             mDecor.makeFrameworkOptionalFitsSystemWindows();

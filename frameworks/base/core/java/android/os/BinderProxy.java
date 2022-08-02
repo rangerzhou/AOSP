@@ -515,8 +515,8 @@ public final class BinderProxy implements IBinder {
      */
     public boolean transact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
         Binder.checkParcel(this, code, data, "Unreasonably large binder buffer");
-        // mWarnOnBlocking 在 Binder.allowBlocking(BinderInternal.getContextObject()) 时置为 false
-        if (mWarnOnBlocking && ((flags & FLAG_ONEWAY) == 0) // 判断是否异步的 Binder
+
+        if (mWarnOnBlocking && ((flags & FLAG_ONEWAY) == 0)
                 && Binder.sWarnOnBlockingOnCurrentThread.get()) {
 
             // For now, avoid spamming the log by disabling after we've logged
@@ -535,7 +535,7 @@ public final class BinderProxy implements IBinder {
             }
         }
 
-        final boolean tracingEnabled = Binder.isTracingEnabled(); // 是否添加 trace，用于性能跟踪
+        final boolean tracingEnabled = Binder.isTracingEnabled();
         if (tracingEnabled) {
             final Throwable tr = new Throwable();
             Binder.getTransactionTracker().addTrace(tr);

@@ -746,7 +746,7 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
         final WindowSurfaceController surfaceController = winAnimator.mSurfaceController;
         boolean leakedSurface = false;
         boolean killedApps = false;
-        EventLogTags.writeWmNoSurfaceMemory(winAnimator.mWin.toString(),
+        com.android.server.wm.EventLogTags.writeWmNoSurfaceMemory(winAnimator.mWin.toString(),
                 winAnimator.mSession.mPid, operation);
         final long callingIdentity = Binder.clearCallingIdentity();
         try {
@@ -1538,8 +1538,8 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
         Intent homeIntent = null;
         ActivityInfo aInfo = null;
         if (taskDisplayArea == getDefaultTaskDisplayArea()) {
-            homeIntent = mService.getHomeIntent();
-            aInfo = resolveHomeActivity(userId, homeIntent);
+            homeIntent = mService.getHomeIntent(); // 获取需要启动 launcher 的 intent
+            aInfo = resolveHomeActivity(userId, homeIntent); // 解析需要启动的 activity
         } else if (shouldPlaceSecondaryHomeOnDisplayArea(taskDisplayArea)) {
             Pair<ActivityInfo, Intent> info = resolveSecondaryHomeActivity(userId, taskDisplayArea);
             aInfo = info.first;
@@ -2347,6 +2347,7 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
                 false /* deferPause */);
     }
 
+    // 将所有聚焦的 Task 的所有 Activity 恢复运行，因为有些刚加入的 Activity 是处于暂停状态的
     boolean resumeFocusedTasksTopActivities(
             Task targetRootTask, ActivityRecord target, ActivityOptions targetOptions,
             boolean deferPause) {

@@ -1093,7 +1093,7 @@ public class ActivityManagerService extends IActivityManager.Stub
     final SparseArray<ArrayMap<String, ArrayList<Intent>>> mStickyBroadcasts =
             new SparseArray<ArrayMap<String, ArrayList<Intent>>>();
 
-    final ActiveServices mServices; // 管理 activity 的
+    final ActiveServices mServices;
 
     final static class Association {
         final int mSourceUid;
@@ -2017,13 +2017,12 @@ public class ActivityManagerService extends IActivityManager.Stub
         public static ActivityManagerService startService(
                 SystemServiceManager ssm, ActivityTaskManagerService atm) {
             sAtm = atm;
-            // 最终调用Lifecycle.onStart() 启动 AMS，并返回 Lifecycle.getService()，即 AMS 对象 mService
             return ssm.startService(ActivityManagerService.Lifecycle.class).getService();
         }
 
         @Override
         public void onStart() {
-            mService.start(); // 启动 AMS
+            mService.start();
         }
 
         @Override
@@ -2377,7 +2376,7 @@ public class ActivityManagerService extends IActivityManager.Stub
     }
 
     private void start() {
-        removeAllProcessGroups(); // 移除所有应用进程
+        removeAllProcessGroups();
 
         mBatteryStatsService.publish();
         mAppOpsService.publish();
@@ -3143,7 +3142,7 @@ public class ActivityManagerService extends IActivityManager.Stub
                 mAppProfiler.setAllowLowerMemLevelLocked(false);
                 doLowMem = false;
             }
-            EventLogTags.writeAmProcDied(app.userId, pid, app.processName, setAdj, setProcState);
+            com.android.server.am.EventLogTags.writeAmProcDied(app.userId, pid, app.processName, setAdj, setProcState);
             if (DEBUG_CLEANUP) Slog.v(TAG_CLEANUP,
                 "Dying app: " + app + ", pid: " + pid + ", thread: " + thread.asBinder());
             handleAppDiedLocked(app, pid, false, true, fromBinderDied);
@@ -3160,7 +3159,7 @@ public class ActivityManagerService extends IActivityManager.Stub
                     "Process " + app.processName + " (pid " + pid
                             + ") has died and restarted (pid " + app.getPid() + ").", app.info.uid);
 
-            EventLogTags.writeAmProcDied(app.userId, app.getPid(), app.processName,
+            com.android.server.am.EventLogTags.writeAmProcDied(app.userId, app.getPid(), app.processName,
                     setAdj, setProcState);
         } else if (DEBUG_PROCESSES) {
             Slog.d(TAG_PROCESSES, "Received spurious death notification for thread "
@@ -4257,7 +4256,7 @@ public class ActivityManagerService extends IActivityManager.Stub
 
         if (gone) {
             Slog.w(TAG, "Process " + app + " failed to attach");
-            EventLogTags.writeAmProcessStartTimeout(app.userId, pid, app.uid, app.processName);
+            com.android.server.am.EventLogTags.writeAmProcessStartTimeout(app.userId, pid, app.uid, app.processName);
             synchronized (mProcLock) {
                 mProcessList.removeProcessNameLocked(app.processName, app.uid);
                 mAtmInternal.clearHeavyWeightProcessIfEquals(app.getWindowProcessController());
@@ -4351,7 +4350,7 @@ public class ActivityManagerService extends IActivityManager.Stub
         if (app == null) {
             Slog.w(TAG, "No pending application record for pid " + pid
                     + " (IApplicationThread " + thread + "); dropping process");
-            EventLogTags.writeAmDropProcess(pid);
+            com.android.server.am.EventLogTags.writeAmDropProcess(pid);
             if (pid > 0 && pid != MY_PID) {
                 killProcessQuiet(pid);
                 //TODO: killProcessGroup(app.info.uid, pid);
@@ -4392,7 +4391,7 @@ public class ActivityManagerService extends IActivityManager.Stub
             return false;
         }
 
-        EventLogTags.writeAmProcBound(app.userId, pid, app.processName);
+        com.android.server.am.EventLogTags.writeAmProcBound(app.userId, pid, app.processName);
 
         synchronized (mProcLock) {
             app.mState.setCurAdj(ProcessList.INVALID_ADJ);
@@ -4516,6 +4515,7 @@ public class ActivityManagerService extends IActivityManager.Stub
             mAtmInternal.preBindApplication(app.getWindowProcessController());
             final ActiveInstrumentation instr2 = app.getActiveInstrumentation();
             if (mPlatformCompat != null) {
+
                 mPlatformCompat.resetReporting(app.info);
             }
             final ProviderInfoList providerList = ProviderInfoList.fromList(providers);
@@ -7601,7 +7601,7 @@ public class ActivityManagerService extends IActivityManager.Stub
 
         Slog.i(TAG, "System now ready");
 
-        EventLogTags.writeBootProgressAmsReady(SystemClock.uptimeMillis());
+        com.android.server.am.EventLogTags.writeBootProgressAmsReady(SystemClock.uptimeMillis());
 
         t.traceBegin("updateTopComponentForFactoryTest");
         mAtmInternal.updateTopComponentForFactoryTest();
@@ -7896,7 +7896,7 @@ public class ActivityManagerService extends IActivityManager.Stub
             }
         }
 
-        EventLogTags.writeAmCrash(Binder.getCallingPid(),
+        com.android.server.am.EventLogTags.writeAmCrash(Binder.getCallingPid(),
                 UserHandle.getUserId(Binder.getCallingUid()), processName,
                 r == null ? -1 : r.info.flags,
                 crashInfo.exceptionClassName,
@@ -8133,7 +8133,7 @@ public class ActivityManagerService extends IActivityManager.Stub
         final String processName = app == null ? "system_server"
                 : (r == null ? "unknown" : r.processName);
 
-        EventLogTags.writeAmWtf(UserHandle.getUserId(callingUid), callingPid,
+        com.android.server.am.EventLogTags.writeAmWtf(UserHandle.getUserId(callingUid), callingPid,
                 processName, r == null ? -1 : r.info.flags, tag,
                 crashInfo == null ? "unknown" : crashInfo.exceptionMessage);
 
@@ -11008,7 +11008,7 @@ public class ActivityManagerService extends IActivityManager.Stub
                     final long freeKb = memInfo.getFreeSizeKb();
                     final long zramKb = memInfo.getZramTotalSizeKb();
                     final long kernelKb = memInfo.getKernelUsedSizeKb();
-                    EventLogTags.writeAmMeminfo(cachedKb * 1024, freeKb * 1024, zramKb * 1024,
+                    com.android.server.am.EventLogTags.writeAmMeminfo(cachedKb * 1024, freeKb * 1024, zramKb * 1024,
                             kernelKb * 1024, ss[INDEX_TOTAL_NATIVE_PSS] * 1024);
                     mProcessStats.addSysMemUsageLocked(cachedKb, freeKb, zramKb, kernelKb,
                             ss[INDEX_TOTAL_NATIVE_PSS]);
@@ -11617,7 +11617,7 @@ public class ActivityManagerService extends IActivityManager.Stub
                     final long freeKb = memInfo.getFreeSizeKb();
                     final long zramKb = memInfo.getZramTotalSizeKb();
                     final long kernelKb = memInfo.getKernelUsedSizeKb();
-                    EventLogTags.writeAmMeminfo(cachedKb * 1024, freeKb * 1024, zramKb * 1024,
+                    com.android.server.am.EventLogTags.writeAmMeminfo(cachedKb * 1024, freeKb * 1024, zramKb * 1024,
                             kernelKb * 1024, ss[INDEX_TOTAL_NATIVE_PSS] * 1024);
                     mProcessStats.addSysMemUsageLocked(cachedKb, freeKb, zramKb, kernelKb,
                             ss[INDEX_TOTAL_NATIVE_PSS]);
@@ -14649,7 +14649,7 @@ public class ActivityManagerService extends IActivityManager.Stub
                             if (UserHandle.getAppId(uid) == appId) {
                                 if (userId == UserHandle.USER_ALL
                                         || userId == UserHandle.getUserId(uid)) {
-                                    EventLogTags.writeAmUidIdle(uid);
+                                    com.android.server.am.EventLogTags.writeAmUidIdle(uid);
                                     synchronized (mProcLock) {
                                         uidRec.setIdle(true);
                                         uidRec.setSetIdle(true);

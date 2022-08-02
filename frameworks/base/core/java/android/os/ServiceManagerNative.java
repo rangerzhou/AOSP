@@ -49,9 +49,7 @@ public final class ServiceManagerNative {
 // mRemote is no longer used
 class ServiceManagerProxy implements IServiceManager {
     public ServiceManagerProxy(IBinder remote) {
-        // 老的方式
         mRemote = remote;
-        // 新方式通过 AIDL 方式通信，更简洁
         mServiceManager = IServiceManager.Stub.asInterface(remote);
     }
 

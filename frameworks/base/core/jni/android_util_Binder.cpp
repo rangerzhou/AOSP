@@ -343,9 +343,6 @@ public:
     JavaBBinder(JNIEnv* env, jobject /* Java Binder */ object)
         : mVM(jnienv_to_javavm(env)), mObject(env->NewGlobalRef(object))
     {
-        // 构造参数中的 NewGlobalRef() 将 binder 对象加入到 art::globals 列表，这样 Binder 对象在每次 GC 时
-        // 都会被标记为 GC Root，也便无法回收，只有当 JavaBBinder 对象销毁时，Binder 对象才能从 arg::globals 中清除，
-        // 才能被回收
         ALOGV("Creating JavaBBinder %p\n", this);
         gNumLocalRefsCreated.fetch_add(1, std::memory_order_relaxed);
         gcIfManyNewRefs(env);
@@ -465,10 +462,9 @@ public:
     sp<JavaBBinder> get(JNIEnv* env, jobject obj)
     {
         AutoMutex _l(mLock);
-        sp<JavaBBinder> b = mBinder.promote(); // mBinder 是弱指针，promote 后变为强指针
+        sp<JavaBBinder> b = mBinder.promote();
         if (b == NULL) {
-            // 将 Java 层的 Binder 对象传入，创建 JavaBBinder 对象
-            b = new JavaBBinder(env, obj); // b 被赋值时，JavaBBinder 对象的强引用计数+1
+            b = new JavaBBinder(env, obj);
             if (mVintf) {
                 ::android::internal::Stability::markVintf(b.get());
             }
@@ -763,7 +759,7 @@ jobject javaObjectForIBinder(JNIEnv* env, const sp<IBinder>& val)
 
     BinderProxyNativeData* nativeData = new BinderProxyNativeData();
     nativeData->mOrgue = new DeathRecipientList;
-    nativeData->mObject = val; // 这个 mObject 是 BinderProxy 代理的本地 IBinder
+    nativeData->mObject = val;
 
     jobject object = env->CallStaticObjectMethod(gBinderProxyOffsets.mClass,
             gBinderProxyOffsets.mGetInstance, (jlong) nativeData, (jlong) val.get());
@@ -793,15 +789,13 @@ jobject javaObjectForIBinder(JNIEnv* env, const sp<IBinder>& val)
 
 sp<IBinder> ibinderForJavaObject(JNIEnv* env, jobject obj)
 {
-    if (obj == NULL) return NULL; // 判断 java 对象是否为 null
+    if (obj == NULL) return NULL;
 
-    // Instance of Binder? 判断是否是 Binder 对象
-    // 比如 AMS 继承了 IActivityManager.Stub，而 Stub 都继承自 android.os.Binder，所以是 Binder 对象
+    // Instance of Binder?
     if (env->IsInstanceOf(obj, gBinderOffsets.mClass)) {
-        // 获取 android.os.Binder.mObject 属性 ID，mObject 是 Binder 对象持有的是 JavaBBinderHolder 的引用
         JavaBBinderHolder* jbh = (JavaBBinderHolder*)
             env->GetLongField(obj, gBinderOffsets.mObject);
-        return jbh->get(env, obj); // 调用 JavaBBinderHolder.get() 函数，以 obj 为参数构造 JavaBBinder
+        return jbh->get(env, obj);
     }
 
     // Instance of BinderProxy?
@@ -1388,13 +1382,11 @@ static bool should_time_binder_calls() {
 static jboolean android_os_BinderProxy_transact(JNIEnv* env, jobject obj,
         jint code, jobject dataObj, jobject replyObj, jint flags) // throws RemoteException
 {
-    // dataObj 是调用 mRemote.transact() 时传入的 Parcel 对象，保存了服务的名称
-    // 和服务对象对应的 IBinder 对象（通过 ibinderForJavaObject() 生成的 JavaBBinder）
     if (dataObj == NULL) {
         jniThrowNullPointerException(env, NULL);
         return JNI_FALSE;
     }
-    // 将 java 端的 Parcel 对象转为 native 的 Parcel
+
     Parcel* data = parcelForJavaObject(env, dataObj);
     if (data == NULL) {
         return JNI_FALSE;
@@ -1598,13 +1590,10 @@ static int int_register_android_os_BinderProxy(JNIEnv* env)
 
 int register_android_os_Binder(JNIEnv* env)
 {
-    // 设置 gBinderOffsets 对象的字段，注册 Binder 类的 native 方法
     if (int_register_android_os_Binder(env) < 0)
         return -1;
-    // 设置 gBinderInternalOffsets 对象的字段，注册 BinderInternal 类的 native 方法
     if (int_register_android_os_BinderInternal(env) < 0)
         return -1;
-    // 设置 gWeakReferenceOffsets/gErrorOffsets/gBinderProxyOffsets/gClassOffsets 对象的字段，注册 BinderProxy 类的 native 方法
     if (int_register_android_os_BinderProxy(env) < 0)
         return -1;
 

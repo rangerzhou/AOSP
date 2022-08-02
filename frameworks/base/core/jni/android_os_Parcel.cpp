@@ -296,7 +296,6 @@ static void android_os_Parcel_writeString16(JNIEnv *env, jclass clazz, jlong nat
             const size_t len = env->GetStringLength(val);
             const size_t allocLen = len * sizeof(char16_t);
             err = parcel->writeInt32(len);
-            // 计算复制数据的目标地址 = mData + mDataPos
             char *data = reinterpret_cast<char*>(parcel->writeInplace(allocLen + sizeof(char16_t)));
             if (data != nullptr) {
                 env->GetStringRegion(val, 0, len, reinterpret_cast<jchar*>(data));
@@ -317,8 +316,6 @@ static void android_os_Parcel_writeStrongBinder(JNIEnv* env, jclass clazz, jlong
 {
     Parcel* parcel = reinterpret_cast<Parcel*>(nativePtr);
     if (parcel != NULL) {
-        // object = new XXXService()，比如 new ActivityManagerService()，
-        // ibinderForJavaObject 根据 java 对象(比如 ams) 生成 native 层的 JavaBBinder 对象的强引用
         const status_t err = parcel->writeStrongBinder(ibinderForJavaObject(env, object));
         if (err != NO_ERROR) {
             signalExceptionForError(env, clazz, err);

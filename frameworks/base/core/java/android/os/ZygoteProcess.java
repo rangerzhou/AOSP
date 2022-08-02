@@ -709,7 +709,7 @@ public class ZygoteProcess {
         }
 
         if (packageName != null) {
-            argsForZygote.add("--package-name=" + packageName);
+                argsForZygote.add("--package-name=" + packageName);
         }
 
         if (isTopApp) {

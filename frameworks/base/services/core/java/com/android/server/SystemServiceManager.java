@@ -190,7 +190,7 @@ public final class SystemServiceManager implements Dumpable {
             }
 
             startService(service);
-            return service; // 返回的是 LifeCycle service
+            return service;
         } finally {
             Trace.traceEnd(Trace.TRACE_TAG_SYSTEM_SERVER);
         }
@@ -198,11 +198,11 @@ public final class SystemServiceManager implements Dumpable {
 
     public void startService(@NonNull final SystemService service) {
         // Register it.
-        mServices.add(service); // 把启动的 service 添加到 mServices list 中管理
+        mServices.add(service);
         // Start it.
         long time = SystemClock.elapsedRealtime();
         try {
-            service.onStart(); // LifeCycle.onStart()
+            service.onStart();
         } catch (RuntimeException ex) {
             throw new RuntimeException("Failed to start service " + service.getClass().getName()
                     + ": onStart threw an exception", ex);

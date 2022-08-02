@@ -2204,7 +2204,7 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
                         new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
             }
             mDecorCaptionView.addView(root,
-                    new ViewGroup.MarginLayoutParams(MATCH_PARENT, MATCH_PARENT));
+                    new ViewGroup.MarginLayoutParams(MATCH_PARENT, MATCH_PARENT)); // 加入标题栏
         } else {
 
             // Put it below the color views.

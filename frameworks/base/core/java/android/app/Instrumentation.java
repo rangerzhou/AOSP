@@ -1730,7 +1730,7 @@ public class Instrumentation {
         if (mActivityMonitors != null) {
             synchronized (mSync) {
                 final int N = mActivityMonitors.size();
-                for (int i=0; i<N; i++) {
+                for (int i=0; i<N; i++) { // 更新 ActivityMonitor
                     final ActivityMonitor am = mActivityMonitors.get(i);
                     ActivityResult result = null;
                     if (am.ignoreMatchingSpecificIntents()) {

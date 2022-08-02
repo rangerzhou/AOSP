@@ -3593,12 +3593,12 @@ public final class ActivityThread extends ClientTransactionHandler
                     r.activityInfo.targetActivity);
         }
 
-        ContextImpl appContext = createBaseContextForActivity(r);
+        ContextImpl appContext = createBaseContextForActivity(r); // Activity 中的 getContext 函数返回的就是这个 ContextImpl 对象
         Activity activity = null;
         try {
-            java.lang.ClassLoader cl = appContext.getClassLoader();
+            java.lang.ClassLoader cl = appContext.getClassLoader(); // 获取  ClassLoader
             activity = mInstrumentation.newActivity(
-                    cl, component.getClassName(), r.intent);
+                    cl, component.getClassName(), r.intent); // 根据类名通过反射机制获取 Activity
             StrictMode.incrementExpectedActivityCount(activity.getClass());
             r.intent.setExtrasClassLoader(cl);
             r.intent.prepareToEnterProcess(isProtectedComponent(r.activityInfo),
@@ -3861,7 +3861,7 @@ public final class ActivityThread extends ClientTransactionHandler
         // Hint the GraphicsEnvironment that an activity is launching on the process.
         GraphicsEnvironment.hintActivityLaunch();
 
-        final Activity a = performLaunchActivity(r, customIntent);
+        final Activity a = performLaunchActivity(r, customIntent); // 创建 Activity 并调用其 onCreate()
 
         if (a != null) {
             r.createdConfig = new Configuration(mConfigurationController.getConfiguration());
@@ -4885,9 +4885,11 @@ public final class ActivityThread extends ClientTransactionHandler
         }
         if (r.window == null && !a.mFinished && willBeVisible) {
             r.window = r.activity.getWindow();
+            // 1.获得一个 View 对象，实际上是 DecorView，setContentView把 view 添加到 mContentParent，
+            // mContentParent 是 PhoneWindow.mDecor 的一部分，
             View decor = r.window.getDecorView();
             decor.setVisibility(View.INVISIBLE);
-            ViewManager wm = a.getWindowManager();
+            ViewManager wm = a.getWindowManager(); // 2.获得 ViewManager 对象，实际上是 WindowManagerImpl 对象
             WindowManager.LayoutParams l = r.window.getAttributes();
             a.mDecor = decor;
             l.type = WindowManager.LayoutParams.TYPE_BASE_APPLICATION;
@@ -4907,7 +4909,7 @@ public final class ActivityThread extends ClientTransactionHandler
             if (a.mVisibleFromClient) {
                 if (!a.mWindowAdded) {
                     a.mWindowAdded = true;
-                    wm.addView(decor, l);
+                    wm.addView(decor, l); // 3.把上面获取的 decor 对象添加到 ViewManager 中，调用 WindowManagerImpl.addView
                 } else {
                     // The activity will get a callback for this {@link LayoutParams} change
                     // earlier. However, at that time the decor will not be set (this is set
@@ -7829,7 +7831,7 @@ public final class ActivityThread extends ClientTransactionHandler
         // StrictMode) on debug builds, but using DropBox, not logs.
         CloseGuard.setEnabled(false);
 
-        Environment.initForCurrentUser(); // 初始化环境
+        Environment.initForCurrentUser();
 
         // Make sure TrustedCertificateStore looks in the right place for CA certificates
         final File configDir = Environment.getUserConfigDirectory(UserHandle.myUserId());

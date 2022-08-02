@@ -840,10 +840,10 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_ON_SESSION_SEALED:
-                    handleSessionSealed(); // 发送 MSG_STREAM_VALIDATE_AND_COMMIT
+                    handleSessionSealed();
                     break;
                 case MSG_STREAM_VALIDATE_AND_COMMIT:
-                    handleStreamValidateAndCommit(); // 发送 MSG_INSTALL
+                    handleStreamValidateAndCommit();
                     break;
                 case MSG_INSTALL:
                     handleInstall();
@@ -1713,7 +1713,7 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
             }
         }
 
-        dispatchSessionSealed(); // 发送 MSG_ON_SESSION_SEALED
+        dispatchSessionSealed();
     }
 
     /**
@@ -1721,7 +1721,7 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
      * to prevent mutations of hard links created later.
      */
     private void dispatchSessionSealed() {
-        mHandler.obtainMessage(MSG_ON_SESSION_SEALED).sendToTarget(); // 发送 MSG_ON_SESSION_SEALED
+        mHandler.obtainMessage(MSG_ON_SESSION_SEALED).sendToTarget();
     }
 
     private void handleSessionSealed() {
@@ -1733,7 +1733,7 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
     }
 
     private void dispatchStreamValidateAndCommit() {
-        mHandler.obtainMessage(MSG_STREAM_VALIDATE_AND_COMMIT).sendToTarget(); // 发送 MSG_STREAM_VALIDATE_AND_COMMIT
+        mHandler.obtainMessage(MSG_STREAM_VALIDATE_AND_COMMIT).sendToTarget();
     }
 
     private void handleStreamValidateAndCommit() {
@@ -1791,7 +1791,7 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
             return;
         }
 
-        mHandler.obtainMessage(MSG_INSTALL).sendToTarget(); // 发送 MSG_INSTALL
+        mHandler.obtainMessage(MSG_INSTALL).sendToTarget();
     }
 
     private final class FileSystemConnector extends
@@ -2285,12 +2285,12 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
             return;
         }
 
-        verify(); // 继续调用
+        verify();
     }
 
     private void verify() {
         try {
-            verifyNonStaged(); // 继续。。。
+            verifyNonStaged();
         } catch (PackageManagerException e) {
             final String completeMsg = ExceptionUtils.getCompleteMessage(e);
             onSessionVerificationFailure(e.error, completeMsg);
@@ -2300,7 +2300,7 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
     private void verifyNonStaged()
             throws PackageManagerException {
         final PackageManagerService.VerificationParams verifyingSession =
-                prepareForVerification(); // 继续。。。
+                prepareForVerification();
         if (verifyingSession == null) {
             return;
         }
@@ -2351,7 +2351,7 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
 
     private void install() {
         try {
-            installNonStaged(); // 继续调用
+            installNonStaged();
         } catch (PackageManagerException e) {
             final String completeMsg = ExceptionUtils.getCompleteMessage(e);
             onSessionInstallationFailure(e.error, completeMsg);
@@ -2397,7 +2397,7 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
                         failure.error, failure.getLocalizedMessage(), null);
                 return;
             }
-            mPm.installStage(installingSession, installingChildSessions); // 调用到 PKMS.installStage
+            mPm.installStage(installingSession, installingChildSessions);
         } else {
             mPm.installStage(installingSession);
         }
@@ -2471,7 +2471,7 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
             mSilentUpdatePolicy.track(getInstallerPackageName(), getPackageName());
         }
         synchronized (mLock) {
-            return makeVerificationParamsLocked(); // 继续
+            return makeVerificationParamsLocked();
         }
     }
 
@@ -2626,7 +2626,7 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
             return;
         }
 
-        install(); // 继续...
+        install();
     }
 
     /**

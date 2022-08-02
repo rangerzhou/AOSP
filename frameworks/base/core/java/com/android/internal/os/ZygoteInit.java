@@ -526,7 +526,7 @@ public class ZygoteInit {
                 }
             }
         }
-        // 从 forkSystemServer() 的 args 看出未定义 mInvokeWith，所以为 null
+
         if (parsedArgs.mInvokeWith != null) {
             String[] args = parsedArgs.mRemainingArgs;
             // If we have a non-null system server class path, we'll have to duplicate the
@@ -553,7 +553,6 @@ public class ZygoteInit {
 
             /*
              * Pass the remaining arguments to SystemServer.
-             * 把剩余参数传递给 SystemServer
              */
             return ZygoteInit.zygoteInit(parsedArgs.mTargetSdkVersion,
                     parsedArgs.mDisabledCompatChanges,
@@ -847,12 +846,12 @@ public class ZygoteInit {
         }
 
         /* For child process */
-        if (pid == 0) { // fork 成功，括号里的代码块在子进程运行
+        if (pid == 0) {
             if (hasSecondZygote(abiList)) {
                 waitForSecondaryZygote(socketName);
             }
 
-            zygoteServer.closeServerSocket(); // SystemServer 用不到 socket，所以关闭
+            zygoteServer.closeServerSocket();
             return handleSystemServerProcess(parsedArgs);
         }
 
@@ -971,7 +970,7 @@ public class ZygoteInit {
 
             ZygoteHooks.stopZygoteNoThreadCreation();
 
-            zygoteServer = new ZygoteServer(isPrimaryZygote); // 创建 socket 用于 zygote 通信
+            zygoteServer = new ZygoteServer(isPrimaryZygote);
 
             if (startSystemServer) {
                 Runnable r = forkSystemServer(abiList, zygoteSocketName, zygoteServer);
@@ -979,7 +978,7 @@ public class ZygoteInit {
                 // {@code r == null} in the parent (zygote) process, and {@code r != null} in the
                 // child (system_server) process.
                 if (r != null) {
-                    r.run(); // 调用 MethodAndArgsCaller.run()，即执行 SystemServer.main()
+                    r.run();
                     return;
                 }
             }
@@ -1054,11 +1053,8 @@ public class ZygoteInit {
         Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, "ZygoteInit");
         RuntimeInit.redirectLogStreams();
 
-        RuntimeInit.commonInit(); // 初始化运行环境
-        // 因为 app_main() 中 runtime.start() 的 runtime 是 AndroidRuntime 的子类 AppRuntime，runtime.start() -> ZygoteInit.main()
-        // -> forkSystemserver() -> 子进程 handleSystemServerProcess() -> zygoteInit()，com_android_internal_os_ZygoteInit_nativeZygoteInit
-        // 调用 AndroidRuntime.onZygoteInit()，AppRuntime 覆盖了父类 AndroidRuntime.onZygoteInit()，所以最后执行 AppRuntime.onZygoteInit()
-        ZygoteInit.nativeZygoteInit(); // 启动 binder 线程池，方法在 app_main.AppRuntime.onZygoteInit() 中定义
+        RuntimeInit.commonInit();
+        ZygoteInit.nativeZygoteInit();
         return RuntimeInit.applicationInit(targetSdkVersion, disabledCompatChanges, argv,
                 classLoader);
     }

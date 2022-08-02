@@ -1174,6 +1174,7 @@ public class WindowManagerService extends IWindowManager.Stub
             displayWindowSettingsProvider, Supplier<SurfaceControl.Transaction> transactionFactory,
             Supplier<Surface> surfaceFactory,
             Function<SurfaceSession, SurfaceControl.Builder> surfaceControlFactory) {
+        // 启动 DisplayThread 线程，获取其 Handler，执行 runWithScissors()
         DisplayThread.getHandler().runWithScissors(() ->
                 sInstance = new WindowManagerService(context, im, showBootMsgs, onlyCore, policy,
                         atm, displayWindowSettingsProvider, transactionFactory, surfaceFactory,
@@ -1205,7 +1206,7 @@ public class WindowManagerService extends IWindowManager.Stub
             Function<SurfaceSession, SurfaceControl.Builder> surfaceControlFactory) {
         installLock(this, INDEX_WINDOW);
         mGlobalLock = atm.getGlobalLock();
-        mAtmService = atm;
+        mAtmService = atm; // 获取 ATMS
         mContext = context;
         mIsPc = mContext.getPackageManager().hasSystemFeature(FEATURE_PC);
         mAllowBootMessages = showBootMsgs;
@@ -1233,7 +1234,7 @@ public class WindowManagerService extends IWindowManager.Stub
         mLetterboxConfiguration = new LetterboxConfiguration(
                 // Using SysUI context to have access to Material colors extracted from Wallpaper.
                 ActivityThread.currentActivityThread().getSystemUiContext());
-
+        // 保存传入的 IMS，这样 WMS 就持有了 IMS 的引用
         mInputManager = inputManager; // Must be before createDisplayContentLocked.
         mDisplayManagerInternal = LocalServices.getService(DisplayManagerInternal.class);
 
@@ -1499,6 +1500,7 @@ public class WindowManagerService extends IWindowManager.Stub
             }
 
             if (type >= FIRST_SUB_WINDOW && type <= LAST_SUB_WINDOW) {
+                // 1. 以 token 为 key 从 mWindowMap 中获取 WindowState 对象
                 parentWindow = windowForClientLocked(null, attrs.token, false);
                 if (parentWindow == null) {
                     ProtoLog.w(WM_ERROR, "Attempted to add window with token that is not a window: "
@@ -1657,7 +1659,7 @@ public class WindowManagerService extends IWindowManager.Stub
                         .setOwnerCanManageAppTokens(session.mCanAddInternalSystemWindow)
                         .build();
             }
-
+            // 2. 以 parentWindow 创建 WindowState
             final WindowState win = new WindowState(this, session, client, token, parentWindow,
                     appOp[0], attrs, viewVisibility, session.mUid, userId,
                     session.mCanAddInternalSystemWindow);
@@ -1762,7 +1764,7 @@ public class WindowManagerService extends IWindowManager.Stub
                 displayContent.mTapExcludedWindows.add(win);
             }
 
-            win.attach(); // 调用 attach 函数
+            win.attach(); // 3. 调用 attach
             mWindowMap.put(client.asBinder(), win);
             win.initAppOpsState();
 
@@ -3667,7 +3669,7 @@ public class WindowManagerService extends IWindowManager.Stub
                 ProtoLog.e(WM_ERROR, "Boot completed: SurfaceFlinger is dead!");
             }
 
-            EventLogTags.writeWmBootAnimationDone(SystemClock.uptimeMillis());
+            com.android.server.wm.EventLogTags.writeWmBootAnimationDone(SystemClock.uptimeMillis());
             Trace.asyncTraceEnd(TRACE_TAG_WINDOW_MANAGER, "Stop bootanim", 0);
             mDisplayEnabled = true;
             ProtoLog.i(WM_DEBUG_SCREEN_ON, "******************** ENABLING SCREEN!");
@@ -7599,7 +7601,7 @@ public class WindowManagerService extends IWindowManager.Stub
                 WindowsForAccessibilityCallback callback) {
             synchronized (mGlobalLock) {
                 return mAccessibilityController
-                        .setWindowsForAccessibilityCallback(displayId, callback);
+                        .setWindowsForAccessibilityCallback(displayId, callback);  
             }
         }
 

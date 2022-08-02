@@ -820,7 +820,7 @@ public class ActivityTaskSupervisor implements RecentTasks.Callbacks {
                         "Launching: " + r + " savedState=" + r.getSavedState()
                                 + " with results=" + results + " newIntents=" + newIntents
                                 + " andResume=" + andResume);
-                EventLogTags.writeWmRestartActivity(r.mUserId, System.identityHashCode(r),
+                com.android.server.wm.EventLogTags.writeWmRestartActivity(r.mUserId, System.identityHashCode(r),
                         task.mTaskId, r.shortComponentName);
                 if (r.isActivityTypeHome()) {
                     // Home process is the root process of the task.
@@ -870,11 +870,11 @@ public class ActivityTaskSupervisor implements RecentTasks.Callbacks {
                 // Set desired final state.
                 final ActivityLifecycleItem lifecycleItem;
                 if (andResume) {
-                    lifecycleItem = ResumeActivityItem.obtain(isTransitionForward);
+                    lifecycleItem = ResumeActivityItem.obtain(isTransitionForward); // 获取 ResumeActivityItem
                 } else {
                     lifecycleItem = PauseActivityItem.obtain();
                 }
-                clientTransaction.setLifecycleStateRequest(lifecycleItem);
+                clientTransaction.setLifecycleStateRequest(lifecycleItem); // 添加最后执行的生命周期状态
 
                 // Schedule transaction.
                 mService.getLifecycleManager().scheduleTransaction(clientTransaction);
@@ -901,7 +901,7 @@ public class ActivityTaskSupervisor implements RecentTasks.Callbacks {
                 }
 
             } catch (RemoteException e) {
-                if (r.launchFailed) {
+                if (r.launchFailed) { // 第二次启动失败，finish activity 并放弃启动
                     // This is the second time we failed -- finish activity and give up.
                     Slog.e(TAG, "Second failure launching "
                             + r.intent.getComponent().flattenToShortString() + ", giving up", e);
@@ -911,7 +911,7 @@ public class ActivityTaskSupervisor implements RecentTasks.Callbacks {
                 }
 
                 // This is the first time we failed -- restart process and
-                // retry.
+                // retry.第一次启动失败，尝试重新启动
                 r.launchFailed = true;
                 proc.removeActivity(r, true /* keepAssociation */);
                 throw e;
@@ -993,7 +993,7 @@ public class ActivityTaskSupervisor implements RecentTasks.Callbacks {
                 mService.getProcessController(r.processName, r.info.applicationInfo.uid);
 
         boolean knownToBeDead = false;
-        if (wpc != null && wpc.hasThread()) { // 如果 app 已经启动
+        if (wpc != null && wpc.hasThread()) {
             try {
                 realStartActivityLocked(r, wpc, andResume, checkConfig);
                 return;

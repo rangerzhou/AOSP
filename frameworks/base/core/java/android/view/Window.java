@@ -1511,7 +1511,7 @@ public abstract class Window {
      */
     @Nullable
     public <T extends View> T findViewById(@IdRes int id) {
-        return getDecorView().findViewById(id);
+        return getDecorView().findViewById(id); // PhoneWindow 实现 getDecorView，返回 PhoneWindow.mDecor
     }
     /**
      * Finds a view that was identified by the {@code android:id} XML attribute

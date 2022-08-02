@@ -1033,7 +1033,7 @@ public final class ViewRootImpl implements ViewParent,
             int userId) {
         synchronized (this) {
             if (mView == null) {
-                mView = view; // 1.保存传入的 view 参数为 mView，指向 PhoneWindow.mDecor(DecorView)
+                mView = view; // 1. 保存传入的 view 参数为 ViewRootImpl.mView，view 指向 PhoneWindow.mDecor(DecorView)
 
                 mAttachInfo.mDisplayState = mDisplay.getState();
                 mViewLayoutDirectionInitial = mView.getRawLayoutDirection();
@@ -1123,7 +1123,8 @@ public final class ViewRootImpl implements ViewParent,
                 // Schedule the first layout -before- adding to the window
                 // manager, to make sure we do the relayout before receiving
                 // any other events from the system.
-                requestLayout(); // 2.发送一个 Handler 消息
+                // 2. 使用 ViewRootImpl.mChoreographer 的 Handler 发送一个 MSG_DO_SCHEDULE_CALLBACK 消息，所以消息还是在 ViewRootImpl 中处理
+                requestLayout();
                 InputChannel inputChannel = null;
                 if ((mWindowAttributes.inputFeatures
                         & WindowManager.LayoutParams.INPUT_FEATURE_NO_INPUT_CHANNEL) == 0) {
@@ -1150,7 +1151,7 @@ public final class ViewRootImpl implements ViewParent,
                     res = mWindowSession.addToDisplayAsUser(mWindow, mWindowAttributes,
                             getHostVisibility(), mDisplay.getDisplayId(), userId,
                             mInsetsController.getRequestedVisibilities(), inputChannel, mTempInsets,
-                            mTempControls);
+                            mTempControls); // 3.
                     if (mTranslator != null) {
                         mTranslator.translateInsetsStateInScreenToAppWindow(mTempInsets);
                         mTranslator.translateSourceControlsInScreenToAppWindow(mTempControls);
@@ -1823,9 +1824,9 @@ public final class ViewRootImpl implements ViewParent,
     @Override
     public void requestLayout() {
         if (!mHandlingLayoutInLayoutRequest) {
-            checkThread();
+            checkThread(); // 检查当前线程是否是创建 ViewRootImpl 的线程， 所以一般情况下子线程无法更新 UI 就是因为这里
             mLayoutRequested = true;
-            scheduleTraversals();
+            scheduleTraversals(); // 发送一个消息
         }
     }
 
@@ -2151,9 +2152,9 @@ public final class ViewRootImpl implements ViewParent,
     void scheduleTraversals() {
         if (!mTraversalScheduled) {
             mTraversalScheduled = true;
-            mTraversalBarrier = mHandler.getLooper().getQueue().postSyncBarrier(); // 同步屏障
+            mTraversalBarrier = mHandler.getLooper().getQueue().postSyncBarrier(); // 设置同步屏障
             mChoreographer.postCallback(
-                    Choreographer.CALLBACK_TRAVERSAL, mTraversalRunnable, null); // 会执行 TraversalRunnable.run
+                    Choreographer.CALLBACK_TRAVERSAL, mTraversalRunnable, null);
             notifyRendererOfFramePending();
             pokeDrawLockIfNeeded();
         }

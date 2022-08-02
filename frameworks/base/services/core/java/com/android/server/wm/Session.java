@@ -660,7 +660,7 @@ class Session extends IWindowSession.Stub implements IBinder.DeathRecipient {
             if (DEBUG) {
                 Slog.v(TAG_WM, "First window added to " + this + ", creating SurfaceSession");
             }
-            mSurfaceSession = new SurfaceSession(); // 创建一个 SurfaceSession 对象
+            mSurfaceSession = new SurfaceSession(); // 创建 SurfaceSession 对象
             ProtoLog.i(WM_SHOW_TRANSACTIONS, "  NEW SURFACE SESSION %s", mSurfaceSession);
             mService.mSessions.add(this);
             if (mLastReportedAnimatorScale != mService.getCurrentAnimatorScale()) {

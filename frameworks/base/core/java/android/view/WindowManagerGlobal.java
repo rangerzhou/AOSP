@@ -387,16 +387,17 @@ public final class WindowManagerGlobal {
                 }
             }
 
-            root = new ViewRootImpl(view.getContext(), display);
+            root = new ViewRootImpl(view.getContext(), display); // 创建 ViewROotImpl
 
             view.setLayoutParams(wparams);
 
             mViews.add(view);
-            mRoots.add(root);
+            mRoots.add(root); // 保存 root 到 mRoots 这个 ArrayList 中
             mParams.add(wparams);
 
             // do this last because it fires off messages to start doing things
             try {
+                // 传入的 view 是 PhoneWindow.mDecor(DecorView 对象)，是从 ActivityThread.handleResumeActivity 中的 addView 传过来的
                 root.setView(view, wparams, panelParentView, userId);
             } catch (RuntimeException e) {
                 // BadTokenException or InvalidDisplayException, clean up.

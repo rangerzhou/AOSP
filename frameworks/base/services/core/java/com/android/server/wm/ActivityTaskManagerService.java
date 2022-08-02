@@ -834,7 +834,7 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
         mFactoryTest = FactoryTest.getMode();
         mSystemThread = ActivityThread.currentActivityThread();
         mUiContext = mSystemThread.getSystemUiContext();
-        mLifecycleManager = new ClientLifecycleManager(); // APP Activity 生命周期相关，Android P 开始有的
+        mLifecycleManager = new ClientLifecycleManager();
         mVisibleActivityProcessTracker = new VisibleActivityProcessTracker(this);
         mInternal = new LocalService();
         GL_ES_VERSION = SystemProperties.getInt("ro.opengles.version", GL_ES_VERSION_UNDEFINED);
@@ -1159,7 +1159,7 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
         @Override
         public void onStart() {
             publishBinderService(Context.ACTIVITY_TASK_SERVICE, mService);
-            mService.start(); // 启动 ATMS
+            mService.start();
         }
 
         @Override
@@ -4550,7 +4550,7 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
         applyUpdateLockStateLocked(r);
         applyUpdateVrModeLocked(r);
 
-        EventLogTags.writeWmSetResumedActivity(
+        com.android.server.wm.EventLogTags.writeWmSetResumedActivity(
                 r == null ? -1 : r.mUserId,
                 r == null ? "NULL" : r.shortComponentName,
                 reason);
@@ -4931,7 +4931,7 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
         intent.setComponent(mTopComponent);
         intent.addFlags(Intent.FLAG_DEBUG_TRIAGED_MISSING);
         if (mFactoryTest != FactoryTest.FACTORY_TEST_LOW_LEVEL) {
-            intent.addCategory(Intent.CATEGORY_HOME);
+            intent.addCategory(Intent.CATEGORY_HOME); // Launcher 配置的 CATEGORY_HOME
         }
         return intent;
     }
