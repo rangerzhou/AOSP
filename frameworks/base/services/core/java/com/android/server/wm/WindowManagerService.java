@@ -2622,12 +2622,13 @@ public class WindowManagerService extends IWindowManager.Stub
         WindowSurfaceController surfaceController;
         try {
             Trace.traceBegin(TRACE_TAG_WINDOW_MANAGER, "createSurfaceControl");
-            surfaceController = winAnimator.createSurfaceLocked(win.mAttrs.type);
+            surfaceController = winAnimator.createSurfaceLocked(win.mAttrs.type); // 创建 WindowSurfaceController
         } finally {
             Trace.traceEnd(TRACE_TAG_WINDOW_MANAGER);
         }
         if (surfaceController != null) {
-            surfaceController.getSurfaceControl(outSurfaceControl);
+            // 将 surfaceController.mSurfaceControl(属于 WMS) 拷贝到 outSurfaceControl(属于 ViewRootImpl)
+            surfaceController.getSurfaceControl(outSurfaceControl); 
             ProtoLog.i(WM_SHOW_TRANSACTIONS, "OUT SURFACE %s: copied", outSurfaceControl);
 
         } else {

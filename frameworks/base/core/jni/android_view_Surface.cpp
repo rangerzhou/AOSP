@@ -198,7 +198,7 @@ static jlong nativeLockCanvas(JNIEnv* env, jclass clazz,
         native_window_set_buffers_format(surface.get(), PIXEL_FORMAT_RGBA_8888);
     }
 
-    Rect dirtyRect(Rect::EMPTY_RECT);
+    Rect dirtyRect(Rect::EMPTY_RECT); // dirtyRect 表示需要重绘的矩形块
     Rect* dirtyRectPtr = NULL;
 
     if (dirtyRectObj) {

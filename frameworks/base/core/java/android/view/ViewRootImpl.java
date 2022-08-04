@@ -2884,7 +2884,7 @@ public final class ViewRootImpl implements ViewParent,
                 if (mFirst || viewVisibilityChanged) {
                     mViewFrameInfo.flags |= FrameInfo.FLAG_WINDOW_VISIBILITY_CHANGED;
                 }
-                relayoutResult = relayoutWindow(params, viewVisibility, insetsPending);
+                relayoutResult = relayoutWindow(params, viewVisibility, insetsPending); // 主要工作 1
                 final boolean freeformResizing = (relayoutResult
                         & WindowManagerGlobal.RELAYOUT_RES_DRAG_RESIZING_FREEFORM) != 0;
                 final boolean dockedResizing = (relayoutResult
@@ -3204,7 +3204,7 @@ public final class ViewRootImpl implements ViewParent,
         boolean triggerGlobalLayoutListener = didLayout
                 || mAttachInfo.mRecomputeGlobalAttributes;
         if (didLayout) {
-            performLayout(lp, mWidth, mHeight);
+            performLayout(lp, mWidth, mHeight); // 执行布局？
 
             // By this point all views have been sized and positioned
             // We can compute the transparent area
@@ -3373,7 +3373,7 @@ public final class ViewRootImpl implements ViewParent,
                 }
                 mPendingTransitions.clear();
             }
-            performDraw();
+            performDraw(); // 主要工作 2
         } else {
             if (isViewVisible) {
                 // Try again
@@ -4244,7 +4244,7 @@ public final class ViewRootImpl implements ViewParent,
         boolean usingAsyncReport = addFrameCompleteCallbackIfNeeded(mReportNextDraw);
 
         try {
-            boolean canUseAsync = draw(fullRedrawNeeded);
+            boolean canUseAsync = draw(fullRedrawNeeded); // 调用 draw 开始绘制
             if (usingAsyncReport && !canUseAsync) {
                 mAttachInfo.mThreadedRenderer.setFrameCompleteCallback(null);
                 usingAsyncReport = false;
@@ -4388,7 +4388,7 @@ public final class ViewRootImpl implements ViewParent,
     }
 
     private boolean draw(boolean fullRedrawNeeded) {
-        Surface surface = mSurface;
+        Surface surface = mSurface; // ViewRootImpl 的成员变量
         if (!surface.isValid()) {
             return false;
         }
@@ -4551,7 +4551,7 @@ public final class ViewRootImpl implements ViewParent,
                     scheduleTraversals();
                     return false;
                 }
-
+                // 在其中调用 mSurface.lockCanvas
                 if (!drawSoftware(surface, mAttachInfo, xOffset, yOffset,
                         scalingRequired, dirty, surfaceInsets)) {
                     return false;
@@ -4591,7 +4591,7 @@ public final class ViewRootImpl implements ViewParent,
             final int right = dirty.right;
             final int bottom = dirty.bottom;
 
-            canvas = mSurface.lockCanvas(dirty);
+            canvas = mSurface.lockCanvas(dirty); // 从 mSurface 中 lock 一块 Canvas
 
             // TODO: Do this in native
             canvas.setDensity(mDensity);
@@ -4644,12 +4644,12 @@ public final class ViewRootImpl implements ViewParent,
             }
             canvas.setScreenDensity(scalingRequired ? mNoncompatDensity : 0);
 
-            mView.draw(canvas);
+            mView.draw(canvas); // 调用 DecorView 的 draw 函数，canvas 就是画布
 
             drawAccessibilityFocusedDrawableIfNeeded(canvas);
         } finally {
             try {
-                surface.unlockCanvasAndPost(canvas);
+                surface.unlockCanvasAndPost(canvas); // unlock 画布
             } catch (IllegalArgumentException e) {
                 Log.e(mTag, "Could not unlock surface", e);
                 mLayoutRequested = true;    // ask wm for a new surface next time.
@@ -7899,7 +7899,7 @@ public final class ViewRootImpl implements ViewParent,
         if (mSurface.isValid()) {
             frameNumber = mSurface.getNextFrameNumber();
         }
-
+        // 调用 mWindowSession.relayout
         int relayoutResult = mWindowSession.relayout(mWindow, params,
                 (int) (mView.getMeasuredWidth() * appScale + 0.5f),
                 (int) (mView.getMeasuredHeight() * appScale + 0.5f), viewVisibility,
