@@ -43,4 +43,10 @@ AOSP.si4project/
 /frameworks/base/tools
 /frameworks/base/wifi
 /frameworks/base/.prebuilt_info
+/frameworks/base/packages/EasterEgg/.gradle/
+/frameworks/ex/common/.gradle/
+/frameworks/opt/chips/.gradle/
+/frameworks/opt/colorpicker/.gradle/
+/frameworks/opt/photoviewer/.gradle/
+/frameworks/opt/vcard/.gradle/
 
