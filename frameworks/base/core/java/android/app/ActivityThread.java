@@ -4885,7 +4885,7 @@ public final class ActivityThread extends ClientTransactionHandler
         }
         if (r.window == null && !a.mFinished && willBeVisible) {
             r.window = r.activity.getWindow();
-            // 1.获得一个 View 对象，实际上是 DecorView，setContentView把 view 添加到 mContentParent，
+            // 1.获得一个 View 对象，实际上是 DecorView，setContentView 把 view 添加到 mContentParent，
             // mContentParent 是 PhoneWindow.mDecor 的一部分，
             View decor = r.window.getDecorView();
             decor.setVisibility(View.INVISIBLE);
