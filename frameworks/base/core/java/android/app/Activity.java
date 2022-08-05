@@ -7943,8 +7943,8 @@ public class Activity extends ContextThemeWrapper
         attachBaseContext(context); // 保存当前 ContextImpl
 
         mFragments.attachHost(null /*parent*/);
-
-        mWindow = new PhoneWindow(this, window, activityConfigCallback); // 创建 PhoneWindow
+        // 创建 PhoneWindow
+        mWindow = new PhoneWindow(this, window, activityConfigCallback);
         mWindow.setWindowControllerCallback(mWindowControllerCallback);
         mWindow.setCallback(this);
         mWindow.setOnWindowDismissedCallback(this);

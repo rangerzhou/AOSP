@@ -2195,19 +2195,23 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
                     mUserCaptionBackgroundDrawable, getCurrentColor(mStatusColorViewState),
                     getCurrentColor(mNavigationColorViewState));
         }
-
+        // 创建 DecorCaptionView（装饰标题视图）
         mDecorCaptionView = createDecorCaptionView(inflater);
+        // 加载传入的 layoutResource 成为根视图
         final View root = inflater.inflate(layoutResource, null);
-        if (mDecorCaptionView != null) {
+        if (mDecorCaptionView != null) {// 判断 DecorCaptionView 是否为空
             if (mDecorCaptionView.getParent() == null) {
+                // 如果 DecorCaptionView 没有父布局，就添加 DecorCaptionView 到 DecorView 的最后一项
                 addView(mDecorCaptionView,
                         new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
             }
+            // 添加 root 到 DecorCaptionView 的最后一项
             mDecorCaptionView.addView(root,
                     new ViewGroup.MarginLayoutParams(MATCH_PARENT, MATCH_PARENT)); // 加入标题栏
         } else {
 
             // Put it below the color views.
+            // 添加 root 到 DecorView 的第一项
             addView(root, 0, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
         }
         mContentRoot = (ViewGroup) root;

@@ -2603,8 +2603,9 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         // Inflate the window decor.
 
         int layoutResource;
-        int features = getLocalFeatures();
+        int features = getLocalFeatures(); // 获取当前 window 正在实现的功能
         // System.out.println("Features: 0x" + Integer.toHexString(features));
+        // 判断 features，决定 layoutResource 值
         if ((features & ((1 << FEATURE_LEFT_ICON) | (1 << FEATURE_RIGHT_ICON))) != 0) {
             if (mIsFloating) {
                 TypedValue res = new TypedValue();
@@ -2660,8 +2661,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             // System.out.println("Simple!");
         }
 
-        mDecor.startChanging();
-        mDecor.onResourcesLoaded(mLayoutInflater, layoutResource); // 加入标题栏
+        mDecor.startChanging(); // 开始改变 DecorView
+        mDecor.onResourcesLoaded(mLayoutInflater, layoutResource); // 加载布局
         // ID_ANDROID_CONTENT 定义在 Window 中：com.android.internal.R.id.content
         ViewGroup contentParent = (ViewGroup)findViewById(ID_ANDROID_CONTENT); // contentParent 是 PhoneWindow.mDecor 的一部分
         if (contentParent == null) {
@@ -2700,7 +2701,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             }
             setTitleColor(mTitleColor);
         }
-
+        // 停止改变 DecorView，停止后调用 drawableChanged 方法更新 DecorView
         mDecor.finishChanging();
 
         return contentParent;
@@ -2772,7 +2773,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     invalidatePanelMenu(FEATURE_ACTION_BAR);
                 }
             } else {
-                mTitleView = findViewById(R.id.title);
+                mTitleView = findViewById(R.id.title); // 创建标题栏
                 if (mTitleView != null) {
                     if ((getLocalFeatures() & (1 << FEATURE_NO_TITLE)) != 0) {
                         final View titleContainer = findViewById(R.id.title_container);
