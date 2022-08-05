@@ -49,4 +49,4 @@ AOSP.si4project/
 /frameworks/opt/colorpicker/.gradle/
 /frameworks/opt/photoviewer/.gradle/
 /frameworks/opt/vcard/.gradle/
-
+.vscode/
