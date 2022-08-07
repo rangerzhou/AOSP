@@ -644,14 +644,14 @@ public final class Choreographer {
                 // If running on the Looper thread, then schedule the vsync immediately,
                 // otherwise post a message to schedule the vsync from the UI thread
                 // as soon as possible.
-                if (isRunningOnLooperThreadLocked()) {
+                if (isRunningOnLooperThreadLocked()) { // 当运行在 Looper 线程，则立刻调度 vsync
                     scheduleVsyncLocked();
-                } else {
+                } else { // 切换到主线程，调度 vsync
                     Message msg = mHandler.obtainMessage(MSG_DO_SCHEDULE_VSYNC);
                     msg.setAsynchronous(true);
                     mHandler.sendMessageAtFrontOfQueue(msg);
                 }
-            } else {
+            } else { // 如果没有 VSYNC 的同步，则发送消息刷新画面
                 final long nextFrameTime = Math.max(
                         mLastFrameTimeNanos / TimeUtils.NANOS_PER_MS + sFrameDelay, now);
                 if (DEBUG_FRAMES) {
@@ -720,14 +720,16 @@ public final class Choreographer {
                 }
 
                 long intendedFrameTimeNanos = frameTimeNanos;
-                startNanos = System.nanoTime();
-                final long jitterNanos = startNanos - frameTimeNanos;
-                if (jitterNanos >= frameIntervalNanos) {
+                startNanos = System.nanoTime(); // 当前时间
+                final long jitterNanos = startNanos - frameTimeNanos; // 抖动时间
+                if (jitterNanos >= frameIntervalNanos) { // 抖动间隔大于屏幕刷新时间间隔（16ms）
                     final long skippedFrames = jitterNanos / frameIntervalNanos;
                     if (skippedFrames >= SKIPPED_FRAME_WARNING_LIMIT) {
+                        // 跳过了几帧，也许当前应用在主线程做了太多的事情
                         Log.i(TAG, "Skipped " + skippedFrames + " frames!  "
                                 + "The application may be doing too much work on its main thread.");
                     }
+                    // 最后一次的屏幕刷是 lastFrameOffset 之前开始的
                     final long lastFrameOffset = jitterNanos % frameIntervalNanos;
                     if (DEBUG_JANK) {
                         Log.d(TAG, "Missed vsync by " + (jitterNanos * 0.000001f) + " ms "
@@ -736,9 +738,9 @@ public final class Choreographer {
                                 + "Skipping " + skippedFrames + " frames and setting frame "
                                 + "time to " + (lastFrameOffset * 0.000001f) + " ms in the past.");
                     }
-                    frameTimeNanos = startNanos - lastFrameOffset;
+                    frameTimeNanos = startNanos - lastFrameOffset; // 最后一帧的刷新开始时间
                 }
-
+                // 由于跳帧可能造成了当前展现的是之前的帧，这样需要等待下一个 vsync 信号
                 if (frameTimeNanos < mLastFrameTimeNanos) {
                     if (DEBUG_JANK) {
                         Log.d(TAG, "Frame time appears to be going backwards.  May be due to a "
@@ -760,14 +762,14 @@ public final class Choreographer {
 
                 mFrameInfo.setVsync(intendedFrameTimeNanos, frameTimeNanos, vsyncEventData.id,
                         vsyncEventData.frameDeadline, startNanos, vsyncEventData.frameInterval);
-                mFrameScheduled = false;
-                mLastFrameTimeNanos = frameTimeNanos;
+                mFrameScheduled = false; // 当前画面刷新的状态置 false
+                mLastFrameTimeNanos = frameTimeNanos; // 更新最后一帧的刷新时间
                 mLastFrameIntervalNanos = frameIntervalNanos;
                 mLastVsyncEventData = vsyncEventData;
             }
 
             AnimationUtils.lockAnimationClock(frameTimeNanos / TimeUtils.NANOS_PER_MS);
-
+            // 按照优先级策略进行画面刷新时间处理
             mFrameInfo.markInputHandlingStart();
             doCallbacks(Choreographer.CALLBACK_INPUT, frameTimeNanos, frameIntervalNanos);
 
@@ -869,7 +871,7 @@ public final class Choreographer {
         synchronized (mLock) {
             if (!mFrameScheduled) {
                 final long now = SystemClock.uptimeMillis();
-                if (mCallbackQueues[callbackType].hasDueCallbacksLocked(now)) {
+                if (mCallbackQueues[callbackType].hasDueCallbacksLocked(now)) { // 有能执行的任务
                     scheduleFrameLocked(now);
                 }
             }
@@ -950,13 +952,13 @@ public final class Choreographer {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case MSG_DO_FRAME:
+                case MSG_DO_FRAME: // 刷新当前这一帧
                     doFrame(System.nanoTime(), 0, new DisplayEventReceiver.VsyncEventData());
                     break;
-                case MSG_DO_SCHEDULE_VSYNC:
+                case MSG_DO_SCHEDULE_VSYNC: // 做 VSYNC 的信号同步
                     doScheduleVsync();
                     break;
-                case MSG_DO_SCHEDULE_CALLBACK:
+                case MSG_DO_SCHEDULE_CALLBACK: // 将当前任务加入执行队列
                     doScheduleCallback(msg.arg1);
                     break;
             }

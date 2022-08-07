@@ -479,7 +479,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         // decor, when theme attributes and the like are crystalized. Do not check the feature
         // before this happens.
         if (mContentParent == null) { // mContentParent 是 mDecor 本身，或者是 mDecor 的一部分
-            installDecor(); // 创建 PhoneWindow.mDecor(DecorView类型)，获取 mContentParent
+            installDecor(); // 1.创建 PhoneWindow.mDecor(DecorView类型)，获取 mContentParent
         } else if (!hasFeature(FEATURE_CONTENT_TRANSITIONS)) {
             mContentParent.removeAllViews();
         }
@@ -489,7 +489,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             final Scene newScene = new Scene(mContentParent, view);
             transitionTo(newScene);
         } else {
-            mContentParent.addView(view, params); // 把 view 添加到 ViewGroup 中
+            mContentParent.addView(view, params); // 2.把 view 添加到 ViewGroup 中
         }
         mContentParent.requestApplyInsets();
         final Callback cb = getCallback();
@@ -2377,7 +2377,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
     protected ViewGroup generateLayout(DecorView decor) {
         // Apply data from current theme.
-
+        // 从主题文件获取样式信息
         TypedArray a = getWindowStyle();
 
         if (false) {
@@ -2662,7 +2662,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         }
 
         mDecor.startChanging(); // 开始改变 DecorView
-        mDecor.onResourcesLoaded(mLayoutInflater, layoutResource); // 加载布局
+        mDecor.onResourcesLoaded(mLayoutInflater, layoutResource); // 加载布局到 DecorView 中
         // ID_ANDROID_CONTENT 定义在 Window 中：com.android.internal.R.id.content
         ViewGroup contentParent = (ViewGroup)findViewById(ID_ANDROID_CONTENT); // contentParent 是 PhoneWindow.mDecor 的一部分
         if (contentParent == null) {

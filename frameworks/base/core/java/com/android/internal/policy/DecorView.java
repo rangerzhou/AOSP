@@ -2201,7 +2201,7 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
         final View root = inflater.inflate(layoutResource, null);
         if (mDecorCaptionView != null) {// 判断 DecorCaptionView 是否为空
             if (mDecorCaptionView.getParent() == null) {
-                // 如果 DecorCaptionView 没有父布局，就添加 DecorCaptionView 到 DecorView 的最后一项
+                // 如果 mDecorCaptionView 没有父布局，就添加 mDecorCaptionView 到 DecorView 的最后一项
                 addView(mDecorCaptionView,
                         new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
             }
@@ -2214,7 +2214,7 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
             // 添加 root 到 DecorView 的第一项
             addView(root, 0, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
         }
-        mContentRoot = (ViewGroup) root;
+        mContentRoot = (ViewGroup) root;// 将 root 视图作为 DecorView 的 mContentRoot（一个ViewGroup）
         initializeElevation();
     }
 

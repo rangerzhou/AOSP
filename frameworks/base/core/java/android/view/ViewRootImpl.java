@@ -1033,7 +1033,7 @@ public final class ViewRootImpl implements ViewParent,
             int userId) {
         synchronized (this) {
             if (mView == null) {
-                mView = view; // 1. 保存传入的 view 参数为 ViewRootImpl.mView，view 指向 PhoneWindow.mDecor(DecorView)
+                mView = view; // 1. 保存传入的 view 参数到 ViewRootImpl.mView，view 指向 PhoneWindow.mDecor(DecorView)
 
                 mAttachInfo.mDisplayState = mDisplay.getState();
                 mViewLayoutDirectionInitial = mView.getRawLayoutDirection();
@@ -1151,7 +1151,7 @@ public final class ViewRootImpl implements ViewParent,
                     res = mWindowSession.addToDisplayAsUser(mWindow, mWindowAttributes,
                             getHostVisibility(), mDisplay.getDisplayId(), userId,
                             mInsetsController.getRequestedVisibilities(), inputChannel, mTempInsets,
-                            mTempControls); // 3.
+                            mTempControls);
                     if (mTranslator != null) {
                         mTranslator.translateInsetsStateInScreenToAppWindow(mTempInsets);
                         mTranslator.translateSourceControlsInScreenToAppWindow(mTempControls);
