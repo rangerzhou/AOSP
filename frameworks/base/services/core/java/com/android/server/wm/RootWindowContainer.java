@@ -1538,8 +1538,9 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
         Intent homeIntent = null;
         ActivityInfo aInfo = null;
         if (taskDisplayArea == getDefaultTaskDisplayArea()) {
-            homeIntent = mService.getHomeIntent(); // 获取需要启动 launcher 的 intent
-            aInfo = resolveHomeActivity(userId, homeIntent); // 解析需要启动的 activity
+            homeIntent = mService.getHomeIntent(); // 1.获取需要启动 launcher 的 intent，表明是 HomeActivity
+            // 2.通知 PKMS 从已安装应用中找出符合 HomeIntent 的 activity，解析需要启动的 activity
+            aInfo = resolveHomeActivity(userId, homeIntent);
         } else if (shouldPlaceSecondaryHomeOnDisplayArea(taskDisplayArea)) {
             Pair<ActivityInfo, Intent> info = resolveSecondaryHomeActivity(userId, taskDisplayArea);
             aInfo = info.first;
@@ -1570,7 +1571,7 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
         final String myReason = reason + ":" + userId + ":" + UserHandle.getUserId(
                 aInfo.applicationInfo.uid) + ":" + taskDisplayArea.getDisplayId();
         mService.getActivityStartController().startHomeActivity(homeIntent, aInfo, myReason,
-                taskDisplayArea);
+                taskDisplayArea); // 3.启动 Activity
         return true;
     }
 
@@ -1582,7 +1583,7 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
     @VisibleForTesting
     ActivityInfo resolveHomeActivity(int userId, Intent homeIntent) {
         final int flags = ActivityManagerService.STOCK_PM_FLAGS;
-        final ComponentName comp = homeIntent.getComponent();
+        final ComponentName comp = homeIntent.getComponent(); // 系统正常启动时 component 为 null
         ActivityInfo aInfo = null;
         try {
             if (comp != null) {
@@ -1591,6 +1592,7 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
             } else {
                 final String resolvedType =
                         homeIntent.resolveTypeIfNeeded(mService.mContext.getContentResolver());
+                // 查找符合 HomeIntent 的 Activities，找到最符合 Intent 的 Activity
                 final ResolveInfo info = AppGlobals.getPackageManager()
                         .resolveIntent(homeIntent, resolvedType, flags, userId);
                 if (info != null) {

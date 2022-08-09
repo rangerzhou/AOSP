@@ -4411,12 +4411,12 @@ static int binder_ioctl_set_ctx_mgr(struct file *filp,
     struct binder_node *new_node;
     kuid_t curr_euid = current_euid();
     mutex_lock(&context->context_mgr_node_lock);
-    if (context->binder_context_mgr_node) {
+    if (context->binder_context_mgr_node) { // binder的 context manager 只能设置一次
         pr_err("BINDER_SET_CONTEXT_MGR already set\n");
         ret = -EBUSY;
         goto out;
     }
-    ret = security_binder_set_context_mgr(binder_get_cred(proc));
+    ret = security_binder_set_context_mgr(binder_get_cred(proc)); // selinux 检查，判断调用进程是否有权限设置 context manager
     if (ret < 0)
         goto out;
     if (uid_valid(context->binder_context_mgr_uid)) {
@@ -4429,9 +4429,11 @@ static int binder_ioctl_set_ctx_mgr(struct file *filp,
             goto out;
         }
     } else {
-        context->binder_context_mgr_uid = curr_euid;
+        context->binder_context_mgr_uid = curr_euid; // 设置 Binder 驱动 context manager 所在进程的用户 ID
     }
-    new_node = binder_new_node(proc, fbo);
+    // 根据 flat_binder_object 的信息创建一个对应的 binder_node，里面保存了 servicemanager
+    // 进程的 binder_proc，ptr 和 cookie 值，servicemanager不设置的话可以不关注
+    new_node = binder_new_node(proc, fbo); // 新建 binder 节点
     if (!new_node) {
         ret = -ENOMEM;
         goto out;
@@ -4441,7 +4443,7 @@ static int binder_ioctl_set_ctx_mgr(struct file *filp,
     new_node->local_strong_refs++;
     new_node->has_strong_ref = 1;
     new_node->has_weak_ref = 1;
-    context->binder_context_mgr_node = new_node;
+    context->binder_context_mgr_node = new_node; // 设置 binder 驱动 context manager 节点
     binder_node_unlock(new_node);
     binder_put_node(new_node);
 out:
