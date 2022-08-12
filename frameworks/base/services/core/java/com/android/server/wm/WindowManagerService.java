@@ -562,6 +562,7 @@ public class WindowManagerService extends IWindowManager.Stub
 
     final IActivityManager mActivityManager;
     // TODO: Probably not needed once activities are fully in WM.
+    // ActivityTaskManager 服务相关，管理 Activity 和其容器(如 task/stacks/displays)的系统服务
     final IActivityTaskManager mActivityTaskManager;
     final ActivityManagerInternal mAmInternal;
     final ActivityTaskManagerInternal mAtmInternal;
