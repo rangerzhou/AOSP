@@ -50,3 +50,5 @@ frameworks/opt/colorpicker/.gradle/
 frameworks/opt/photoviewer/.gradle/
 frameworks/opt/vcard/.gradle/
 .vscode/
+frameworks/opt/
+frameworks/ex/
