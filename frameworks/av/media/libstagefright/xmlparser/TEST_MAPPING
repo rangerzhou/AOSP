@@ -1,6 +1,0 @@
-// test mapping for frameworks/av/media/libstagefright/xmlparser
-{
-  "presubmit": [
-    { "name": "XMLParserTest" }
-  ]
-}

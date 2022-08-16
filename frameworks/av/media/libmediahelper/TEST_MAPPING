@@ -1,7 +1,0 @@
-{
-  "presubmit": [
-    {
-      "name": "libmedia_helper_tests"
-    }
-  ]
-}

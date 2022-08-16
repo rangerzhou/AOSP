@@ -1,6 +1,0 @@
-// mappings for frameworks/av/media/libstagefright/bqhelper
-{
-  "presubmit": [
-    { "name": "FrameDropper_test"}
-  ]
-}

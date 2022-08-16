@@ -1,4 +1,0 @@
-<!-- entry for testing Include -->
-<MediaCodecs>
-    <Include href="media_codecs_unit_test.xml" />
-</MediaCodecs>

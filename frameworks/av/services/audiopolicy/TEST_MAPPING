@@ -1,7 +1,0 @@
-{
-  "presubmit": [
-    {
-       "name": "audiopolicy_tests"
-    }
-  ]
-}
