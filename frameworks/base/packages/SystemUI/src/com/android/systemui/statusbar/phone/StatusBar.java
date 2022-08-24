@@ -933,7 +933,7 @@ public class StatusBar extends SystemUI implements
         mColorExtractor.addOnColorsChangedListener(mOnColorsChangedListener);
         mStatusBarStateController.addCallback(mStateListener,
                 SysuiStatusBarStateController.RANK_STATUS_BAR);
-
+        // 获取 WindowManagerImpl
         mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
         mDreamManager = IDreamManager.Stub.asInterface(
                 ServiceManager.checkService(DreamService.DREAM_SERVICE));
@@ -944,7 +944,7 @@ public class StatusBar extends SystemUI implements
         mStatusBarHideIconsForBouncerManager.setDisplayId(mDisplayId);
 
         // start old BaseStatusBar.start().
-        mWindowManagerService = WindowManagerGlobal.getWindowManagerService();
+        mWindowManagerService = WindowManagerGlobal.getWindowManagerService(); // 获取 IWindowManager.Stub.Proxy
         mDevicePolicyManager = (DevicePolicyManager) mContext.getSystemService(
                 Context.DEVICE_POLICY_SERVICE);
 
@@ -964,7 +964,7 @@ public class StatusBar extends SystemUI implements
         } catch (RemoteException ex) {
             ex.rethrowFromSystemServer();
         }
-
+        // 创建状态栏 View，并将其添加到 WindowManager
         createAndAddWindows(result);
 
         if (mWallpaperSupported) {
@@ -1117,10 +1117,11 @@ public class StatusBar extends SystemUI implements
     // Constructing the view
     // ================================================================================
     protected void makeStatusBarView(@Nullable RegisterStatusBarResult result) {
-        updateDisplaySize(); // populates mDisplayMetrics
-        updateResources();
-        updateTheme();
-
+        updateDisplaySize(); // populates mDisplayMetrics 更新尺寸
+        updateResources(); // 更新资源
+        updateTheme(); // 更新主题
+        // 根据布局文件 super_status_bar.xml 创建 mNotificationShadeWindowViewController
+        // 和 mNotificationShadeWindowView
         inflateStatusBarWindow();
         mNotificationShadeWindowViewController.setService(this, mNotificationShadeWindowController);
         mNotificationShadeWindowView.setOnTouchListener(getStatusBarWindowTouchListener());
@@ -1138,6 +1139,7 @@ public class StatusBar extends SystemUI implements
         mUserSwitcherController.init(mNotificationShadeWindowView);
 
         // Allow plugins to reference DarkIconDispatcher and StatusBarStateController
+        // CollapsedStatusBarFragment 对应的布局文件为 status_bar.xml
         mPluginDependencyProvider.allowPluginDependency(DarkIconDispatcher.class);
         mPluginDependencyProvider.allowPluginDependency(StatusBarStateController.class);
         mStatusBarWindowController.getFragmentHostManager()
@@ -1178,7 +1180,7 @@ public class StatusBar extends SystemUI implements
         mHeadsUpManager.addListener(mVisualStabilityManager);
         mNotificationPanelViewController.setHeadsUpManager(mHeadsUpManager);
 
-        createNavigationBar(result);
+        createNavigationBar(result); // 创建导航栏（针对 CarStatusBar，正在尝试移除此方法）
 
         if (ENABLE_LOCKSCREEN_WALLPAPER && mWallpaperSupported) {
             mLockscreenWallpaper = mLockscreenWallpaperLazy.get();
@@ -2414,11 +2416,12 @@ public class StatusBar extends SystemUI implements
             pw.println("Unknown");
         }
     }
-
+    // 创建状态栏 View, 并将其添加到 WindowManager
     public void createAndAddWindows(@Nullable RegisterStatusBarResult result) {
-        makeStatusBarView(result);
+        makeStatusBarView(result); // 根据布局文件 super_status_bar.xml 创建 StatusBarWindowView
         mNotificationShadeWindowController.attach();
-        mStatusBarWindowController.attach();
+
+        mStatusBarWindowController.attach(); // 将 StatusBarWindowView 添加到 WindowManager
     }
 
     // called by makeStatusbar and also by PhoneStatusBarView

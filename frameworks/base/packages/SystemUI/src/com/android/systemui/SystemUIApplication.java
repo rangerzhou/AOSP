@@ -122,7 +122,7 @@ public class SystemUIApplication extends Application implements
                         }
                     }
                 }
-            }, bootCompletedFilter);
+            }, bootCompletedFilter); // 注册接收开机广播
 
             IntentFilter localeChangedFilter = new IntentFilter(Intent.ACTION_LOCALE_CHANGED);
             registerReceiver(new BroadcastReceiver() {
@@ -134,7 +134,7 @@ public class SystemUIApplication extends Application implements
                         NotificationChannels.createAll(context);
                     }
                 }
-            }, localeChangedFilter);
+            }, localeChangedFilter); // 注册接收语言切换广播
         } else {
             // We don't need to startServices for sub-process that is doing some tasks.
             // (screenshots, sweetsweetdesserts or tuner ..)
@@ -147,7 +147,7 @@ public class SystemUIApplication extends Application implements
             // been broadcasted on startup for the primary SystemUI process.  Instead, for
             // components which require the SystemUI component to be initialized per-user, we
             // start those components now for the current non-system user.
-            startSecondaryUserServicesIfNeeded();
+            startSecondaryUserServicesIfNeeded(); // 第二用户启动的服务
         }
     }
 
@@ -158,7 +158,8 @@ public class SystemUIApplication extends Application implements
      * <p>This method must only be called from the main thread.</p>
      */
 
-    public void startServicesIfNeeded() {
+    public void startServicesIfNeeded() { // SystemUIService.onCreate() 中调用
+        // 获取 SystemUI 中所有服务类名
         String[] names = SystemUIFactory.getInstance().getSystemUIServiceComponents(getResources());
         startServicesIfNeeded(/* metricsPrefix= */ "StartServices", names);
     }
@@ -208,6 +209,7 @@ public class SystemUIApplication extends Application implements
             try {
                 SystemUI obj = mComponentHelper.resolveSystemUI(clsName);
                 if (obj == null) {
+                    // 利用反射获取服务对象
                     Constructor constructor = Class.forName(clsName).getConstructor(Context.class);
                     obj = (SystemUI) constructor.newInstance(this);
                 }
@@ -221,7 +223,7 @@ public class SystemUIApplication extends Application implements
             }
 
             if (DEBUG) Log.d(TAG, "running: " + mServices[i]);
-            mServices[i].start();
+            mServices[i].start(); // 启动服务
             log.traceEnd();
 
             // Warn if initialization of component takes too long

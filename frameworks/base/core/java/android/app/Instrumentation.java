@@ -1185,6 +1185,8 @@ public class Instrumentation {
     public Application newApplication(ClassLoader cl, String className, Context context)
             throws InstantiationException, IllegalAccessException, 
             ClassNotFoundException {
+        // getFactory 返回 AppComponentFactory 对象（在 AndroidManifest.xml 中配置，如未配置则返回 AppComponentFactory.DEFAULT）
+        // 随后调用 androidx.core.app.AppComponentFactory.instantiateApplication 创建 Application 对象
         Application app = getFactory(context.getPackageName())
                 .instantiateApplication(cl, className);
         app.attach(context);

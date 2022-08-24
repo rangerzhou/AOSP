@@ -6568,7 +6568,7 @@ public final class ActivityThread extends ClientTransactionHandler
             // This calls mResourcesManager so keep it within the synchronized block.
             mConfigurationController.applyCompatConfiguration();
         }
-
+        // 创建 LoadedApk
         data.info = getPackageInfoNoCheck(data.appInfo, data.compatInfo);
 
         if (agent != null) {

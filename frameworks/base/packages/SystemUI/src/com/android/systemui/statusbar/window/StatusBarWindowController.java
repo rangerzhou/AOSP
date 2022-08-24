@@ -128,7 +128,7 @@ public class StatusBarWindowController {
         // hardware-accelerated.
         mLp = getBarLayoutParams(mContext.getDisplay().getRotation());
 
-        mWindowManager.addView(mStatusBarWindowView, mLp);
+        mWindowManager.addView(mStatusBarWindowView, mLp); // 将 StatusBarWindowView 添加到 WindowManager
         mLpChanged.copyFrom(mLp);
 
         mContentInsetsProvider.addCallback(this::calculateStatusBarLocationsForAllRotations);

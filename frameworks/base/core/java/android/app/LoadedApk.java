@@ -1348,11 +1348,12 @@ public final class LoadedApk {
 
                 rewriteRValues(cl, packageIdentifiers.valueAt(i), id);
             }
-
+            // 创建 Application 的 Context
             ContextImpl appContext = ContextImpl.createAppContext(mActivityThread, this);
             // The network security config needs to be aware of multiple
             // applications in the same process to handle discrepancies
             NetworkSecurityConfigProvider.handleNewApplication(appContext);
+            // 通过 Instrumentation 创建 Application
             app = mActivityThread.mInstrumentation.newApplication(
                     cl, appClass, appContext);
             appContext.setOuterContext(app);

@@ -3034,7 +3034,7 @@ public final class SystemServer implements Dumpable {
     private static void startSystemUi(Context context, WindowManagerService windowManager) {
         PackageManagerInternal pm = LocalServices.getService(PackageManagerInternal.class);
         Intent intent = new Intent();
-        intent.setComponent(pm.getSystemUiServiceComponent());
+        intent.setComponent(pm.getSystemUiServiceComponent()); // 
         intent.addFlags(Intent.FLAG_DEBUG_TRIAGED_MISSING);
         //Slog.d(TAG, "Starting service: " + intent);
         context.startServiceAsUser(intent, UserHandle.SYSTEM);

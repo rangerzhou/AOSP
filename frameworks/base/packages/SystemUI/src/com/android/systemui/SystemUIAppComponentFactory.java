@@ -47,7 +47,8 @@ import javax.inject.Inject;
  * ContentProviders support injection into member variables - _not_ constructors.
  */
 public class SystemUIAppComponentFactory extends AppComponentFactory {
-
+    // 注意这里继承的是 androidx.core.app.AppComponentFactory，不是 android.app.AppComponentFactory
+    // 前者继承后者，对其进行实现后暴露了 instantiateApplicationCompat
     private static final String TAG = "AppComponentFactory";
     @Inject
     public ContextComponentHelper mComponentHelper;
@@ -61,8 +62,10 @@ public class SystemUIAppComponentFactory extends AppComponentFactory {
     public Application instantiateApplicationCompat(
             @NonNull ClassLoader cl, @NonNull String className)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+        // 调用父类方法实例化 Application
         Application app = super.instantiateApplicationCompat(cl, className);
         if (app instanceof ContextInitializer) {
+            // 注册 Context 成功取得的回调
             ((ContextInitializer) app).setContextAvailableCallback(
                     context -> {
                         SystemUIFactory.createFromConfig(context);
@@ -72,7 +75,7 @@ public class SystemUIAppComponentFactory extends AppComponentFactory {
             );
         }
 
-        return app;
+        return app; // 返回 Application 实例
     }
 
     @NonNull
