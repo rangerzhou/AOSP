@@ -207,9 +207,8 @@ public class SystemUIApplication extends Application implements
             log.traceBegin(metricsPrefix + clsName);
             long ti = System.currentTimeMillis();
             try {
-                SystemUI obj = mComponentHelper.resolveSystemUI(clsName);
-                if (obj == null) {
-                    // 利用反射获取服务对象
+                SystemUI obj = mComponentHelper.resolveSystemUI(clsName); // 将类名转换为类的实例
+                if (obj == null) { // 如果为空则利用反射获取服务类的实例
                     Constructor constructor = Class.forName(clsName).getConstructor(Context.class);
                     obj = (SystemUI) constructor.newInstance(this);
                 }

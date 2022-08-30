@@ -6722,6 +6722,7 @@ public final class ActivityThread extends ClientTransactionHandler
         try {
             // If the app is being launched for full backup or restore, bring it up in
             // a restricted environment with the base application class.
+            // 创建 Application
             app = data.info.makeApplication(data.restrictedBackupMode, null);
 
             // Propagate autofill compat state
@@ -6746,7 +6747,7 @@ public final class ActivityThread extends ClientTransactionHandler
             // app's custom Application class
             if (!data.restrictedBackupMode) {
                 if (!ArrayUtils.isEmpty(data.providers)) {
-                    installContentProviders(app, data.providers);
+                    installContentProviders(app, data.providers); // 创建 ContentProvider
                 }
             }
 
@@ -6761,7 +6762,7 @@ public final class ActivityThread extends ClientTransactionHandler
                     + data.instrumentationName + ": " + e.toString(), e);
             }
             try {
-                mInstrumentation.callApplicationOnCreate(app);
+                mInstrumentation.callApplicationOnCreate(app); // 调用 Application.onCreate()
             } catch (Exception e) {
                 if (!mInstrumentation.onException(app, e)) {
                     throw new RuntimeException(
