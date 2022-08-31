@@ -92,7 +92,7 @@ public class SystemUIFactory {
         mInitializeComponents = !fromTest
                 && android.os.Process.myUserHandle().isSystem()
                 && ActivityThread.currentProcessName().equals(ActivityThread.currentPackageName());
-        mRootComponent = buildGlobalRootComponent(context);
+        mRootComponent = buildGlobalRootComponent(context); // 获取 systemui 的 dagger 组件
         // Stand up WMComponent
         mWMComponent = mRootComponent.getWMComponentBuilder().build();
         if (mInitializeComponents) {
