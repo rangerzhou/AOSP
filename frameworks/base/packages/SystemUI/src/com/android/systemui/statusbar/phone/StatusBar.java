@@ -2418,7 +2418,7 @@ public class StatusBar extends SystemUI implements
     }
     // 创建状态栏 View, 并将其添加到 WindowManager
     public void createAndAddWindows(@Nullable RegisterStatusBarResult result) {
-        makeStatusBarView(result); // 根据布局文件 super_status_bar.xml 创建 StatusBarWindowView
+        makeStatusBarView(result);
         mNotificationShadeWindowController.attach();
 
         mStatusBarWindowController.attach(); // 将 StatusBarWindowView 添加到 WindowManager
