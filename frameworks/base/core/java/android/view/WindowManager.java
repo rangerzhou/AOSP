@@ -993,7 +993,7 @@ public interface WindowManager extends ViewManager {
          * {@link Gravity#END} it provides an offset from the given edge.
          */
         @ViewDebug.ExportedProperty
-        public int x;
+        public int x; // X 坐标
 
         /**
          * Y position for this window.  With the default gravity it is ignored.
@@ -1001,7 +1001,7 @@ public interface WindowManager extends ViewManager {
          * an offset from the given edge.
          */
         @ViewDebug.ExportedProperty
-        public int y;
+        public int y; // Y 坐标
 
         /**
          * Indicates how much of the extra space will be allocated horizontally
@@ -1154,7 +1154,7 @@ public interface WindowManager extends ViewManager {
                         to = "APPLICATION_OVERLAY")
         })
         @WindowType
-        public int type;
+        public int type; // 类型(WMS 根据 type 确定 Z-Order)
 
         /**
          * Start of window types that represent normal application windows.

@@ -2572,14 +2572,14 @@ public final class ViewRootImpl implements ViewParent,
 
     private void performTraversals() {
         // cache mView since it is used so much below...
-        final View host = mView; // mView 是 DecorView 对象，视图树根节点
+        final View host = mView; // mView 是 DecorView 对象，视图树根节点，通过 setView() 传进来
 
         if (DBG) {
             System.out.println("======================================");
             System.out.println("performTraversals");
             host.debug();
         }
-
+        // mAdded 表示 DecorView 是否被成功添加到 Window，在 setView 中被设置为 true
         if (host == null || !mAdded) {
             return;
         }
@@ -2602,14 +2602,15 @@ public final class ViewRootImpl implements ViewParent,
         }
 
         mIsInTraversal = true; // 是否正在遍历
-        mWillDrawSoon = true; // 是否马上绘制视图
-        boolean windowSizeMayChange = false;
+        mWillDrawSoon = true; // 是否马上绘制 view
+        boolean windowSizeMayChange = false; // 视图大小可能改变
         WindowManager.LayoutParams lp = mWindowAttributes;
-
+        // 顶层视图 DecorView 窗口的期望宽高
         int desiredWindowWidth;
         int desiredWindowHeight;
 
         final int viewVisibility = getHostVisibility(); // DecorView 是否可见
+        // 视图可见性改变
         final boolean viewVisibilityChanged = !mFirst
                 && (mViewVisibility != viewVisibility || mNewSurfaceNeeded
                 // Also check for possible double visibility update, which will make current
@@ -2637,16 +2638,18 @@ public final class ViewRootImpl implements ViewParent,
         // Activity 的窗口尺寸。
         // 成员变量 mWidth 和 mHeight 也是用来描述 Activity 窗口当前的宽度和高度的，但是它们的值是由应用程序进程上一次主动请求 WMS 服务计算得到的。
         // Activity 窗口的当前宽度和高度有时会被 WMS 服务主动请求应用程序进程修改，修改后的值就会保存在 变量 mWinFrame 中，这会导致两处存储的窗口大小的不同。
+        // mWinFrame 保存了窗口最新尺寸
         Rect frame = mWinFrame;
         if (mFirst) { // 是否是第一次执行
             mFullRedrawNeeded = true; // 是否需要全部重新 draw
             mLayoutRequested = true; // 是否需要重新 layout
 
             final Configuration config = getConfiguration();
-            // 判断窗口的类型是否包含状态栏，如果包含，则 Activity 窗口的宽度和高度就是除了状态栏
-            if (shouldUseDisplaySize(lp)) { // 包含状态栏
+            // 初始化期望窗口宽高
+            if (shouldUseDisplaySize(lp)) { // 窗口类型是状态栏/输入法/音量调整窗口
                 // NOTE -- system code, won't try to do compat mode.
                 Point size = new Point();
+                // 设置窗口尺寸为屏幕真实尺寸，不剪去任何装饰的尺寸
                 mDisplay.getRealSize(size);
                 desiredWindowWidth = size.x;
                 desiredWindowHeight = size.y;
@@ -2684,12 +2687,13 @@ public final class ViewRootImpl implements ViewParent,
             // 窗口尺寸设置成最新测量的窗口尺寸
             desiredWindowWidth = frame.width();
             desiredWindowHeight = frame.height();
-            // 如果这次测量的窗口大小与上次的值不同(成员变量 mWidth 和 mHeight 保存了上一次 WMS 测量的窗口大小)，说明 WMS 改变了窗口的尺寸
+            // 如果这次测量的窗口大小与上次的值不同(成员变量 mWidth 和 mHeight 保存了上一次 WMS 测量的窗口大小)，
+            // 说明 WMS 改变了窗口的尺寸，需要重新绘制
             if (desiredWindowWidth != mWidth || desiredWindowHeight != mHeight) {
                 if (DEBUG_ORIENTATION) Log.v(mTag, "View " + host + " resized to: " + frame);
                 mFullRedrawNeeded = true; // 需要全部重新 draw
                 mLayoutRequested = true; // 需要重新 layout
-                windowSizeMayChange = true; // window 窗口大小改变
+                windowSizeMayChange = true; // window 尺寸可能改变
             }
         }
         // 视图的可见性发生变化
@@ -2724,17 +2728,20 @@ public final class ViewRootImpl implements ViewParent,
 
             final Resources res = mView.getContext().getResources();
 
-            if (mFirst) { // 确定控件树是否需要进入TouchMode
+            if (mFirst) { // 确定控件树是否需要进入 TouchMode，只是改变了 mInTouchMode 信息
                 // make sure touch mode code executes by setting cached value
                 // to opposite of the added touch mode.
                 mAttachInfo.mInTouchMode = !mAddedTouchMode;
-                ensureTouchModeLocally(mAddedTouchMode);
+                ensureTouchModeLocally(mAddedTouchMode); // 确保这个 window 的触摸模式已经被设置
             } else {
-                // 如果窗口的 width 或 height 被指定为 WRAP_CONTENT 时，表示该窗口为悬浮窗口
+                // 如果 Activity 窗口的 width 或 height 被指定为 WRAP_CONTENT 时，
+                // 意味着 Activity 窗口的大小要等于内容区域的大小，但是由于 Activity 窗口的大小是需要覆盖整个屏幕的，
+                // 因此系统就会将 Activity 窗口的当前宽度和当前高度设置为屏幕的宽度和高度，即 Activity 窗口宽高设置为
+                // WRAP_CONTENT 是无效的，也即 Activity 窗口的大小发生了变化(从 WRAP_CONTENT 变为屏幕大小)
                 if (lp.width == ViewGroup.LayoutParams.WRAP_CONTENT
                         || lp.height == ViewGroup.LayoutParams.WRAP_CONTENT) {
-                    windowSizeMayChange = true; // 悬浮窗口的尺寸取决于测量结果，因此有可能向 WMS 申请改变窗口的尺寸
-
+                    windowSizeMayChange = true;
+                    // 如果是有状态栏的，那么 Activity 窗口宽高就是除了状态栏，否则就是整个屏幕大小
                     if (shouldUseDisplaySize(lp)) {
                         // NOTE -- system code, won't try to do compat mode.
                         Point size = new Point();
@@ -2750,7 +2757,7 @@ public final class ViewRootImpl implements ViewParent,
             }
 
             // Ask host how big it wants to be
-            // 进行预测量，确定窗口大小是否需要改变
+            // 进行预测量，确定窗口大小是否改变
             windowSizeMayChange |= measureHierarchy(host, lp, res,
                     desiredWindowWidth, desiredWindowHeight);
         }
@@ -2803,7 +2810,10 @@ public final class ViewRootImpl implements ViewParent,
             // layout pass.
             mLayoutRequested = false;
         }
-
+        // 1.layoutRequested 为 true，表示已经发起了一次 requestLayout 测量、布局、绘制
+        // 2.windowSizeMayChange 为 true，表示前面已经检测到了 Activity 窗口的变化
+        // 3.当前宽度/高度和预测量的宽度/高度不一样；窗口设置为 WRAP_CONTENT(即设置成和屏幕的宽高一致)，但是 wms 请求
+        // 的 frame.width/frame.height 与他们不一致，并且与上一次请求 wms 计算的 mWidth/mHeight 也不一致
         boolean windowShouldResize = layoutRequested && windowSizeMayChange
             && ((mWidth != host.getMeasuredWidth() || mHeight != host.getMeasuredHeight())
                 || (lp.width == ViewGroup.LayoutParams.WRAP_CONTENT &&
@@ -2820,6 +2830,11 @@ public final class ViewRootImpl implements ViewParent,
         // Determine whether to compute insets.
         // If there are no inset listeners remaining then we may still need to compute
         // insets in case the old insets were non-empty and must be reset.
+        // 检查 Activity 窗口是否需要指定有额外的内容边衬区域和可见边衬区域。
+        // 如果有的话，那么变量 attachInfo 所指向的一个 AttachInfo 对象的成员变量 mTreeObserver 
+        // 所描述的一个 TreeObserver 对象的成员函数 hasComputeInternalInsetsListerner 
+        // 的返回值 ComputeInternalInsets 就会等于 true。
+        // Activity 窗口指定额外的内容边衬区域和可见边衬区域是为了放置一些额外的东西
         final boolean computesInternalInsets =
                 mAttachInfo.mTreeObserver.hasComputeInternalInsetsListeners()
                 || mAttachInfo.mHasNonEmptyGivenInternalInsets;
@@ -2897,6 +2912,7 @@ public final class ViewRootImpl implements ViewParent,
                 if (mFirst || viewVisibilityChanged) {
                     mViewFrameInfo.flags |= FrameInfo.FLAG_WINDOW_VISIBILITY_CHANGED;
                 }
+                // 请求 WMS 计算 Activity 窗口的大小、过扫描区域边衬大小、可见区域边衬大小
                 relayoutResult = relayoutWindow(params, viewVisibility, insetsPending); // 主要工作 1
                 final boolean freeformResizing = (relayoutResult
                         & WindowManagerGlobal.RELAYOUT_RES_DRAG_RESIZING_FREEFORM) != 0;
@@ -3143,6 +3159,7 @@ public final class ViewRootImpl implements ViewParent,
             // done to achieve a more hermetic fix for S, but it's entirely
             // possible that checking the most recent value is actually more
             // correct here.
+            // mStopped: Activity 是否处于 stop 状态，这段代码用来检查是否需要重新测量 Activity 窗口大小
             if (!mStopped || wasReportNextDraw) {
                 boolean focusChangedDueToTouchMode = ensureTouchModeLocally(
                         (relayoutResult&WindowManagerGlobal.RELAYOUT_RES_IN_TOUCH_MODE) != 0);
@@ -3159,7 +3176,7 @@ public final class ViewRootImpl implements ViewParent,
                             + " dispatchApplyInsets=" + dispatchApplyInsets);
 
                      // Ask host how big it wants to be
-                    performMeasure(childWidthMeasureSpec, childHeightMeasureSpec); // 1.开始执行测量操作
+                    performMeasure(childWidthMeasureSpec, childHeightMeasureSpec); // 1.执行 Measure 操作
 
                     // Implementation of weights from WindowManager.LayoutParams
                     // We just grow the dimensions as needed and re-measure if
@@ -3197,7 +3214,7 @@ public final class ViewRootImpl implements ViewParent,
             // in the attach info. We translate only the window frame since on window move
             // the window manager tells us only for the new frame but the insets are the
             // same and we do not want to translate them more than once.
-            maybeHandleWindowMove(frame);
+            maybeHandleWindowMove(frame); // 判断 window 有没有移动
         }
 
         if (surfaceSizeChanged || surfaceReplaced || surfaceCreated || windowAttributesChanged) {

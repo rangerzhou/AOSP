@@ -215,13 +215,13 @@ public interface WindowManagerPolicyConstants {
      * for multiple windows of the same type and Z-ordering adjustment
      * with TYPE_LAYER_OFFSET.
      */
-    int TYPE_LAYER_MULTIPLIER = 10000;
+    int TYPE_LAYER_MULTIPLIER = 10000; // 计算主序时乘以 10000, 目的是为同类型的多个窗口预留空间和 Z-Order 调整
 
     /**
      * Offset from TYPE_LAYER_MULTIPLIER for moving a group of windows above
      * or below others in the same layer.
      */
-    int TYPE_LAYER_OFFSET = 1000;
+    int TYPE_LAYER_OFFSET = 1000; // 计算主序时加 1000, 目的是确定相同主序的子窗口相对于父窗口的上下位置
 
     /**
      * How much to increment the layer for each window, to reserve room

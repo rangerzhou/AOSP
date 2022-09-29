@@ -315,8 +315,8 @@ class WindowState extends WindowContainer<WindowState> implements WindowManagerP
     final WindowManager.LayoutParams mAttrs = new WindowManager.LayoutParams();
     final DeathRecipient mDeathRecipient;
     private boolean mIsChildWindow;
-    final int mBaseLayer;
-    final int mSubLayer;
+    final int mBaseLayer; // 表示主序
+    final int mSubLayer; // 表示子序
     final boolean mLayoutAttached;
     final boolean mIsImWindow;
     final boolean mIsWallpaper;
@@ -1114,11 +1114,12 @@ class WindowState extends WindowContainer<WindowState> implements WindowManagerP
         mDeathRecipient = deathRecipient;
 
         if (mAttrs.type >= FIRST_SUB_WINDOW && mAttrs.type <= LAST_SUB_WINDOW) {
+            // 当前窗口类型为子窗口
             // The multiplier here is to reserve space for multiple
             // windows in the same type layer.
             mBaseLayer = mPolicy.getWindowLayerLw(parentWindow)
-                    * TYPE_LAYER_MULTIPLIER + TYPE_LAYER_OFFSET;
-            mSubLayer = mPolicy.getSubWindowLayerFromTypeLw(a.type);
+                    * TYPE_LAYER_MULTIPLIER + TYPE_LAYER_OFFSET; // 计算主序
+            mSubLayer = mPolicy.getSubWindowLayerFromTypeLw(a.type); // 计算子序
             mIsChildWindow = true;
 
             mLayoutAttached = mAttrs.type !=
@@ -1126,12 +1127,12 @@ class WindowState extends WindowContainer<WindowState> implements WindowManagerP
             mIsImWindow = parentWindow.mAttrs.type == TYPE_INPUT_METHOD
                     || parentWindow.mAttrs.type == TYPE_INPUT_METHOD_DIALOG;
             mIsWallpaper = parentWindow.mAttrs.type == TYPE_WALLPAPER;
-        } else {
+        } else { // 当前窗口类型不是子窗口
             // The multiplier here is to reserve space for multiple
             // windows in the same type layer.
             mBaseLayer = mPolicy.getWindowLayerLw(this)
                     * TYPE_LAYER_MULTIPLIER + TYPE_LAYER_OFFSET;
-            mSubLayer = 0;
+            mSubLayer = 0; // 子序为 0
             mIsChildWindow = false;
             mLayoutAttached = false;
             mIsImWindow = mAttrs.type == TYPE_INPUT_METHOD

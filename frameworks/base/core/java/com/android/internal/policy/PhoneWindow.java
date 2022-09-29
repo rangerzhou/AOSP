@@ -2605,7 +2605,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         int layoutResource;
         int features = getLocalFeatures(); // 获取当前 window 正在实现的功能
         // System.out.println("Features: 0x" + Integer.toHexString(features));
-        // 判断 features，决定 layoutResource 值
+        // 判断 features，决定 layoutResource 值(根据不同 feature 确定不同的布局)
         if ((features & ((1 << FEATURE_LEFT_ICON) | (1 << FEATURE_RIGHT_ICON))) != 0) {
             if (mIsFloating) {
                 TypedValue res = new TypedValue();
