@@ -612,7 +612,7 @@ public final class ThreadedRenderer extends HardwareRenderer {
      */
     void draw(View view, AttachInfo attachInfo, DrawCallbacks callbacks) {
         attachInfo.mViewRootImpl.mViewFrameInfo.markDrawStart();
-
+        // 录制操作-更新根 view 的 displaylist，从此处开始将绘制操作记录到 DisplayList 中，最终记录到 rootRenderNode
         updateRootDisplayList(view, callbacks);
 
         // register animating rendernodes which started animating prior to renderer

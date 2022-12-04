@@ -22690,7 +22690,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
          *      7. If necessary, draw the default focus highlight
          */
 
-        // Step 1, draw the background, if needed
+        // Step 1, draw the background, if needed - 背景
         int saveCount;
 
         drawBackground(canvas);
@@ -22700,10 +22700,10 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         boolean horizontalEdges = (viewFlags & FADING_EDGE_HORIZONTAL) != 0;
         boolean verticalEdges = (viewFlags & FADING_EDGE_VERTICAL) != 0;
         if (!verticalEdges && !horizontalEdges) {
-            // Step 3, draw the content
+            // Step 3, draw the content - 内容
             onDraw(canvas);
 
-            // Step 4, draw the children
+            // Step 4, draw the children - 子 view
             dispatchDraw(canvas);
 
             drawAutofilledHighlight(canvas);
@@ -22713,7 +22713,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                 mOverlay.getOverlayView().dispatchDraw(canvas);
             }
 
-            // Step 6, draw decorations (foreground, scrollbars)
+            // Step 6, draw decorations (foreground, scrollbars) - 装饰
             onDrawForeground(canvas);
 
             // Step 7, draw the default focus highlight

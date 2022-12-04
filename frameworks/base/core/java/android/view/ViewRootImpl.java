@@ -4517,7 +4517,7 @@ public final class ViewRootImpl implements ViewParent,
 
         boolean useAsyncReport = false;
         if (!dirty.isEmpty() || mIsAnimating || accessibilityFocusDirty || mNextDrawUseBlastSync) {
-            if (isHardwareEnabled()) {
+            if (isHardwareEnabled()) { // 硬件绘制
                 // If accessibility focus moved, always invalidate the root.
                 boolean invalidateRoot = accessibilityFocusDirty || mInvalidateRootRequested;
                 mInvalidateRootRequested = false;
@@ -4555,7 +4555,7 @@ public final class ViewRootImpl implements ViewParent,
                 useAsyncReport = true;
 
                 mAttachInfo.mThreadedRenderer.draw(mView, mAttachInfo, this);
-            } else {
+            } else { // 软件绘制
                 // If we get here with a disabled & requested hardware renderer, something went
                 // wrong (an invalidate posted right before we destroyed the hardware surface
                 // for instance) so we should just bail out. Locking the surface with software
@@ -4603,7 +4603,7 @@ public final class ViewRootImpl implements ViewParent,
             boolean scalingRequired, Rect dirty, Rect surfaceInsets) {
 
         // Draw with software renderer.
-        final Canvas canvas;
+        final Canvas canvas; // 持有的画布
 
         // We already have the offset of surfaceInsets in xoff, yoff and dirty region,
         // therefore we need to add it back when moving the dirty region.
@@ -4624,7 +4624,7 @@ public final class ViewRootImpl implements ViewParent,
             canvas = mSurface.lockCanvas(dirty); // 从 mSurface 中 lock 一块 Canvas
 
             // TODO: Do this in native
-            canvas.setDensity(mDensity);
+            canvas.setDensity(mDensity); // 设置密度
         } catch (Surface.OutOfResourcesException e) {
             handleOutOfResourcesException(e);
             return false;
@@ -4668,7 +4668,7 @@ public final class ViewRootImpl implements ViewParent,
                         ", metrics=" + cxt.getResources().getDisplayMetrics() +
                         ", compatibilityInfo=" + cxt.getResources().getCompatibilityInfo());
             }
-            canvas.translate(-xoff, -yoff);
+            canvas.translate(-xoff, -yoff); // 画布是否需要移动
             if (mTranslator != null) {
                 mTranslator.translateCanvas(canvas);
             }
@@ -7929,7 +7929,7 @@ public final class ViewRootImpl implements ViewParent,
         if (mSurface.isValid()) {
             frameNumber = mSurface.getNextFrameNumber();
         }
-        // 调用 mWindowSession.relayout
+        // 调用 mWindowSession.relayout，这里会让 WMS 创建 SurfaceControl 和 Layer
         int relayoutResult = mWindowSession.relayout(mWindow, params,
                 (int) (mView.getMeasuredWidth() * appScale + 0.5f),
                 (int) (mView.getMeasuredHeight() * appScale + 0.5f), viewVisibility,
